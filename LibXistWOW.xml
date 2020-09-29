@@ -1,0 +1,27 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
+
+    <!-- Dependencies -->
+    <Include file="Libs\LibStub\LibStub.lua"/>
+    <Include file="Libs\StdUi\StdUi.xml"/>
+
+    <!--Core-->
+    <Script file="Core\Util.lua"/>
+    <Script file="Core\Log.lua"/>
+    <Script file="Core\Module.lua"/>
+
+    <!-- Core Modules -->
+    <Script file="Modules\EventHandlers.lua"/>
+    <Script file="Modules\Version.lua"/>
+
+    <!-- Other Modules -->
+    <Script file="Modules\Addon.lua"/>
+    <Script file="Modules\Friend.lua"/>
+    <Script file="Modules\FriendsList.lua"/>
+    <Script file="Modules\GameState.lua"/>
+    <Script file="Modules\UI.lua"/>
+
+    <!-- self addon -->
+    <Script file="LibXistWOW.lua"/>
+</Ui>
