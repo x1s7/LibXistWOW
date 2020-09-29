@@ -17,14 +17,8 @@ addons will be able to use the public API.
 To set up your dev environment and publish this addon either to your local WOW client
 or to CurseForge, you need the submodules.
 
-### LibStub
-
 ```bash
-git submodule add https://github.com/x1s7/LibStub Libs/LibStub
+git submodule update --init --recursive
 ```
 
-### StdUi
-
-```bash
-git submodule add https://github.com/x1s7/StdUi Libs/StdUi
-```
+Run the above command in the project directory to initialize all the Git submodules.
