@@ -22,18 +22,6 @@ local WARNING = protected.WARNING
 
 local PlayerName = UnitName("player")
 
-
-protected.OnFrameEvent = function(self, eventName, ...)
-
-    --DEBUG("OnFrameEvent", eventName)
-
-    local addon = self.Xist_Addon
-    if addon and addon[eventName] then
-        return addon[eventName](addon, ...)
-    end
-end
-
-
 local AddonInstances = {}
 
 
@@ -64,22 +52,26 @@ function Xist_Addon:New(name, version)
         WARNING = Xist_Log.WARNING,
     }
 
-    local frame = CreateFrame("FRAME", nil, UIParent)
+    local objSpecificEventCallback = function(eventName, ...)
+        return obj[eventName](obj, ...)
+    end
 
-    frame:SetFrameStrata("BACKGROUND")
-    frame:SetScript("OnEvent", protected.OnFrameEvent);
+    local defaultEvents = {
+        "ADDON_LOADED",
+        "CHAT_MSG_ADDON",
+        "PLAYER_ENTERING_WORLD",
+        "PLAYER_LOGOUT",
+    }
 
-    frame:RegisterEvent("ADDON_LOADED")
-    frame:RegisterEvent("CHAT_MSG_ADDON")
-    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-    frame:RegisterEvent("PLAYER_LOGOUT")
+    for _, eventName in ipairs(defaultEvents) do
+        Xist_EventHandler:RegisterEvent(eventName, objSpecificEventCallback)
+    end
 
     obj.name = name
     obj.version = Xist_Version:New(version)
-    obj.frame = frame
     obj.slashCommands = {}
 
-    frame.Xist_Addon = obj -- hook frame to self
+    obj.announceLoad = false
 
     AddonInstances[name] = obj -- keep track of this instance by name
     return obj
@@ -110,34 +102,43 @@ function Xist_Addon:SetSlashCommandHandler(callback)
 end
 
 
-function Xist_Addon:RegisterEvent(eventName, callback)
-    Xist_EventHandlers.RegisterEvent(eventName, callback)
-    -- if we don't already have a handler for this event, create a default one
-    -- that simply triggers Xist_EventHandlers for other modules
-    if not self[eventName] then
-        self[eventName] = function()
-            Xist_EventHandlers.TriggerEvent(eventName)
-        end
-    end
-    self.frame:RegisterEvent(eventName)
+function Xist_Addon:GetAddonMessagePrefix()
+    return self.name
 end
 
 
-function Xist_Addon:GetAddonMessagePrefix()
-    return self.name
+function Xist_Addon:OnLoad(callback)
+    self.OnLoadCallback = callback
+end
+
+
+function Xist_Addon:OnLogout(callback)
+    self.OnLogoutCallback = callback
 end
 
 
 function Xist_Addon:ADDON_LOADED(name)
     if name == self.name then
         -- our own addon has loaded
-        --DEBUG("ADDON_LOADED")
+        DEBUG("ADDON_LOADED (me)")
 
-        -- fire the XIST_PRE_ADDON_LOADED event
-        Xist_EventHandlers.TriggerEvent("XIST_PRE_ADDON_LOADED")
+        if self.OnLoadCallback then
+            self.OnLoadCallback()
+        end
 
-        -- fire the ADDON_LOADED event
-        Xist_EventHandlers.TriggerEvent("ADDON_LOADED")
+        if self.announceLoad then
+            MESSAGE("Loaded version ".. tostring(self.version))
+        end
+    else
+        DEBUG("ADDON_LOADED (not me!) ".. name)
+    end
+end
+
+
+function Xist_Addon:PLAYER_LOGOUT()
+    DEBUG("PLAYER_LOGOUT")
+    if self.OnLogoutCallback then
+        self.OnLogoutCallback()
     end
 end
 
@@ -156,7 +157,7 @@ end
 
 
 function Xist_Addon:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUI)
-    --DEBUG("PLAYER_ENTERING_WORLD", {isInitialLogin=isInitialLogin, isReloadingUI=isReloadingUI})
+    DEBUG("PLAYER_ENTERING_WORLD", {isInitialLogin=isInitialLogin, isReloadingUI=isReloadingUI})
 
     -- Register for my own addon messages
     local prefix = self:GetAddonMessagePrefix()
@@ -165,30 +166,6 @@ function Xist_Addon:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUI)
     else
         WARNING("Addon prefix `".. prefix .."' is too long to use Addon messages")
     end
-
-    -- specific initial login event
-    if isInitialLogin then
-        Xist_EventHandlers.TriggerEvent("XIST_PLAYER_ENTERING_WORLD_LOGIN")
-    end
-
-    -- specific reload ui event
-    if isReloadingUI then
-        Xist_EventHandlers.TriggerEvent("XIST_PLAYER_ENTERING_WORLD_RELOAD")
-    end
-
-    -- fire the generic event after the specific events
-    Xist_EventHandlers.TriggerEvent("PLAYER_ENTERING_WORLD")
-end
-
-
-function Xist_Addon:PLAYER_LOGOUT()
-    Xist_EventHandlers.TriggerEvent("PLAYER_LOGOUT")
-end
-
-
-function Xist_Addon:SetEventHandler(eventName, callback)
-    self[eventName] = callback
-    self.frame:RegisterEvent(eventName)
 end
 
 

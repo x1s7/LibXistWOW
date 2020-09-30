@@ -30,7 +30,9 @@ end
 function Xist_Friend:NewByIndex(index)
     local obj = self:New()
     obj.index = index
+    -- @see https://wow.gamepedia.com/API_C_FriendList.GetFriendInfo
     obj.ToonInfo = C_FriendList and C_FriendList.GetFriendInfoByIndex(index)
+    DEBUG("NewByIndex =", obj.ToonInfo)
     return obj
 end
 
@@ -95,6 +97,7 @@ function Xist_Friend:NewByBNetIndex(index)
             gameAccountInfo = gai,
         }
     end
+    DEBUG("NewByBNetIndex =", obj.BNetInfo)
     return obj
 end
 
@@ -158,10 +161,10 @@ end
 
 function Xist_Friend:IsOnline()
     if self.BNetInfo then
-        return self.BNetInfo.isOnline
+        return self.BNetInfo.gameAccountInfo and self.BNetInfo.gameAccountInfo.isOnline or false
     end
     if self.ToonInfo then
-        return self.ToonInfo.isOnline
+        return self.ToonInfo.connected
     end
     return false
 end

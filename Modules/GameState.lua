@@ -1,6 +1,4 @@
 
-local AddonName = ...
-
 local ModuleName = "Xist_GameState"
 local ModuleVersion = 1
 
@@ -39,20 +37,18 @@ end
 local function OnRegenEnabled()
     -- regen is enabled, combat has ended
     inCombat = false
-    Xist_EventHandlers.TriggerEvent("XIST_COMBAT_ENDED")
+    -- trigger the event in the global scope for all addons
+    Xist_EventHandler:TriggerEvent("XIST_COMBAT_ENDED")
 end
 
 
 local function OnRegenDisabled()
     -- regen has been disabled, combat has started
     inCombat = true
-    Xist_EventHandlers.TriggerEvent("XIST_COMBAT_STARTED")
+    -- trigger the event in the global scope for all addons
+    Xist_EventHandler:TriggerEvent("XIST_COMBAT_STARTED")
 end
 
 
-Xist_EventHandlers.RegisterEvent("PLAYER_ENTERING_WORLD", function()
-    -- Keep track of combat state
-    local addon = Xist_Addon.Instance(AddonName)
-    addon:RegisterEvent("PLAYER_REGEN_ENABLED", OnRegenEnabled)
-    addon:RegisterEvent("PLAYER_REGEN_DISABLED", OnRegenDisabled)
-end)
+Xist_EventHandler:RegisterEvent("PLAYER_REGEN_ENABLED", OnRegenEnabled)
+Xist_EventHandler:RegisterEvent("PLAYER_REGEN_DISABLED", OnRegenDisabled)

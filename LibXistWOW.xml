@@ -12,7 +12,7 @@
     <Script file="Core\Module.lua"/>
 
     <!-- Core Modules -->
-    <Script file="Modules\EventHandlers.lua"/>
+    <Script file="Modules\EventHandler.lua"/>
     <Script file="Modules\Version.lua"/>
 
     <!-- Other Modules -->
