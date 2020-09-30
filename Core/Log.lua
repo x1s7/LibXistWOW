@@ -17,6 +17,8 @@ local DEFAULT_SETTINGS = {
         name = "ffcccc00",
         warning = "ffff8888",
     },
+    openBracket = "<",
+    closeBracket = ">",
 }
 
 
@@ -49,53 +51,60 @@ function Xist_Log:Proxy(methodName, ...)
 end
 
 
-function Xist_Log:FormatText(colorCode, text)
-    return "|c".. (self.settings.color[colorCode] or self.settings.color.message) .. text .. "|r"
+function Xist_Log:ColorText(colorCode, text)
+    local color = self.settings.color[colorCode] or self.settings.color.message
+    return "|c".. color .. (text or "") .. "|r"
 end
 
 
 function Xist_Log:GetFormattedName()
-    return self:FormatText('name', self.name or "Xist_Log")
+    return self:ColorText('name', self.name or "Xist_Log")
+end
+
+
+--- Write out a log message.
+--- @param colorCode string
+--- @param category string|nil
+function Xist_Log:Write(colorCode, category, ...)
+    local msg = {}, tmp
+
+    if self.name then
+        tmp = self:ColorText(colorCode, self.settings.openBracket) ..
+                self:GetFormattedName() ..
+                self:ColorText(colorCode, self.settings.closeBracket)
+        table.insert(msg, tmp)
+    end
+
+    if category and category ~= "" then
+        tmp = self:ColorText(colorCode, self.settings.openBracket) ..
+                self:ColorText(colorCode, category) ..
+                self:ColorText(colorCode, self.settings.closeBracket)
+        table.insert(msg, tmp)
+    end
+
+    table.insert(msg, self:ColorText(colorCode, Xist_Util.Args2StringLiteral(...)))
+
+    print(Xist_Util.Join(msg, " "))
 end
 
 
 function Xist_Log:LogMessage(...)
-    local msg = ""
-    if self.name then
-        msg = self:FormatText('message', "[".. self:GetFormattedName() .."] ")
-    end
-    msg = msg .. self:FormatText('message', Xist_Util.Args2StringLiteral(...))
-    print(msg)
+    return self:Write("message", nil, ...)
 end
 
 
 function Xist_Log:LogWarning(...)
-    local msg = ""
-    if self.name then
-        msg = self:FormatText('warning', "[".. self:GetFormattedName() .."] ")
-    end
-    msg = msg .. self:FormatText('warning', "[WARNING] ".. Xist_Util.Args2StringLiteral(...))
-    print(msg)
+    return self:Write("warning", "WARNING", ...)
 end
 
 
 function Xist_Log:LogError(...)
-    local msg = ""
-    if self.name then
-        msg = self:FormatText('error', "[".. self:GetFormattedName() .."] ")
-    end
-    msg = msg .. self:FormatText('error', "[ERROR] ".. Xist_Util.Args2StringLiteral(...))
-    print(msg)
+    return self:Write("error", "ERROR", ...)
 end
 
 
 function Xist_Log:LogDebug(...)
-    local msg = ""
-    if self.name then
-        msg = self:FormatText('debug', "[".. self:GetFormattedName() .."] ")
-    end
-    msg = msg .. self:FormatText('debug', "[DEBUG] ".. Xist_Util.Args2StringLiteral(...))
-    print(msg)
+    return self:Write("debug", "DEBUG", ...)
 end
 
 

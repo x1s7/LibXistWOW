@@ -44,15 +44,55 @@ function Xist_Addon:New(name, version)
     setmetatable(obj, self)
     self.__index = self
 
-    local log = Xist_Log:New(name)
+    AddonInstances[name] = obj -- keep track of this instance by name
+
+    obj.name = name
+    obj.version = Xist_Version:New(version)
+    obj.slashCommands = {}
+
+    obj.bAnnounceLoad = false
+    obj.bDebugEnabled = false
+
+    obj.log = Xist_Log:New(name)
+
+    obj.private = {
+        DEBUG = obj.log:Proxy('LogDebug'),
+        DEBUG_DUMP = obj.log:Proxy('LogDebugDump'),
+        ERROR = obj.log:Proxy('LogError'),
+        MESSAGE = obj.log:Proxy('LogMessage'),
+        WARNING = obj.log:Proxy('LogWarning'),
+    }
 
     obj.protected = {
-        DEBUG = log:Proxy('LogDebug'),
-        DEBUG_DUMP = log:Proxy('LogDebugDump'),
-        ERROR = log:Proxy('LogError'),
-        MESSAGE = log:Proxy('LogMessage'),
-        WARNING = log:Proxy('LogWarning'),
+        DEBUG = protected.NOOP,
+        DEBUG_DUMP = protected.NOOP,
+        ERROR = obj.private.ERROR,
+        MESSAGE = obj.private.MESSAGE,
+        WARNING = obj.private.WARNING,
     }
+
+    obj:InitializeEvents()
+
+    return obj
+end
+
+
+function Xist_Addon:AnnounceLoad()
+    self.bAnnounceLoad = true
+end
+
+
+function Xist_Addon:EnableDebug()
+    self.bDebugEnabled = true
+    -- activate the debug logs
+    self.protected.DEBUG = self.private.DEBUG
+    self.protected.DEBUG_DUMP = self.private.DEBUG_DUMP
+end
+
+
+function Xist_Addon:InitializeEvents()
+
+    local obj = self
 
     local objSpecificEventCallback = function(eventName, ...)
         return obj[eventName](obj, ...)
@@ -68,15 +108,6 @@ function Xist_Addon:New(name, version)
     for _, eventName in ipairs(defaultEvents) do
         Xist_EventHandler:RegisterEvent(eventName, objSpecificEventCallback)
     end
-
-    obj.name = name
-    obj.version = Xist_Version:New(version)
-    obj.slashCommands = {}
-
-    obj.announceLoad = false
-
-    AddonInstances[name] = obj -- keep track of this instance by name
-    return obj
 end
 
 
