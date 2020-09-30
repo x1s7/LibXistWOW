@@ -44,12 +44,14 @@ function Xist_Addon:New(name, version)
     setmetatable(obj, self)
     self.__index = self
 
+    local log = Xist_Log:New(name)
+
     obj.protected = {
-        DEBUG = function(...) Xist_Log.DEBUG(nil, ...) end, -- debug without type info (main addon)
-        DEBUG_DUMP = function(...) Xist_Log.DEBUG_DUMP(nil, ...) end, -- debug without type info (main addon)
-        ERROR = Xist_Log.ERROR,
-        MESSAGE = Xist_Log.MESSAGE,
-        WARNING = Xist_Log.WARNING,
+        DEBUG = log:Proxy('LogDebug'),
+        DEBUG_DUMP = log:Proxy('LogDebugDump'),
+        ERROR = log:Proxy('LogError'),
+        MESSAGE = log:Proxy('LogMessage'),
+        WARNING = log:Proxy('LogWarning'),
     }
 
     local objSpecificEventCallback = function(eventName, ...)
@@ -120,17 +122,17 @@ end
 function Xist_Addon:ADDON_LOADED(name)
     if name == self.name then
         -- our own addon has loaded
-        DEBUG("ADDON_LOADED (me)")
+        DEBUG("ADDON_LOADED [ME] ".. name)
 
         if self.OnLoadCallback then
             self.OnLoadCallback()
         end
 
         if self.announceLoad then
-            MESSAGE("Loaded version ".. tostring(self.version))
+            self.protected.MESSAGE("Loaded version ".. tostring(self.version))
         end
     else
-        DEBUG("ADDON_LOADED (not me!) ".. name)
+        DEBUG("ADDON_LOADED ".. name)
     end
 end
 

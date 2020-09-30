@@ -50,28 +50,32 @@ function Xist_Module.AddModule(name, version, lib)
         module = lib
     end
 
-    local moduleLogIdent = name
     local addonSavedDataVar = SAVED_DATA_PREFIX .. AddonName
+    local log = Xist_Log:New(name)
 
     -- Overwrite previous stuff in module._meta.private from parent classes
     module._meta = module._meta or {}
     module._meta.name = name
     module._meta.version = version
 
+    -- Private module namespace
     local private = {}
     module._meta.private = private
 
-    private.DEBUG = Xist_Log.Factory.DEBUG(moduleLogIdent)
-    private.DEBUG_DUMP = Xist_Log.Factory.DEBUG_DUMP(moduleLogIdent)
+    private.Log = log
 
+    private.DEBUG = log:Proxy('LogDebug')
+    private.DEBUG_DUMP = log:Proxy('LogDebugDump')
+
+    -- Protected module namespace
     local protected = {}
     module._meta.protected = protected
 
     protected.DebugEnabled = DEBUG_ENABLED_DEFAULT
 
-    protected.MESSAGE = Xist_Log.Factory.MESSAGE(moduleLogIdent)
-    protected.WARNING = Xist_Log.Factory.WARNING(moduleLogIdent)
-    protected.ERROR = Xist_Log.Factory.ERROR(moduleLogIdent)
+    protected.ERROR = log:Proxy('LogError')
+    protected.MESSAGE = log:Proxy('LogMessage')
+    protected.WARNING = log:Proxy('LogWarning')
 
     protected.DEBUG = function(...)
         if protected.DebugEnabled == true then
