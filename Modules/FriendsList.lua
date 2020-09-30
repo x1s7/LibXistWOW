@@ -35,80 +35,54 @@ function Xist_FriendsList:Instance()
 end
 
 
-function Xist_FriendsList:GetNumToonFriends()
-    return C_FriendList.GetNumFriends()
-end
-
-
-function Xist_FriendsList:GetNumBNetFriends()
-    return BNGetNumFriends() -- return the total
-end
-
-
-function Xist_FriendsList:IterateToonFriends(queryServer)
+function Xist_FriendsList:IterateToonFriends()
     local instance = self:Instance()
-    -- if local memory is dirty and we want to use local memory rather than querying the server,
-    -- then we need to clean up the dirty mess before we use it!
-    if instance.dirty and not queryServer then
-        self:Cleanup()
-    end
+
+    -- if we need to refresh from the server, do it before we start to iterate
+    if instance.dirty then self:Cleanup() end
+
+    -- iterate through the stored list of friends
     local i = 0
-    local n = self:GetNumToonFriends()
     return function()
-        i = i + 1
-        if i <= n then
-            if queryServer then
-                return Xist_Friend:NewByIndex(i)
-            end
+        if i < #instance.ToonFriends then
+            i = i + 1
             return instance.ToonFriends[i]
         end
     end
 end
 
 
-function Xist_FriendsList:IterateBNetFriends(queryServer)
+function Xist_FriendsList:IterateBNetFriends()
     local instance = self:Instance()
-    -- if local memory is dirty and we want to use local memory rather than querying the server,
-    -- then we need to clean up the dirty mess before we use it!
-    if instance.dirty and not queryServer then
-        self:Cleanup()
-    end
+
+    -- if we need to refresh from the server, do it before we start to iterate
+    if instance.dirty then self:Cleanup() end
+
+    -- iterate through the stored list of friends
     local i = 0
-    local n = self:GetNumBNetFriends()
     return function()
-        i = i + 1
-        if i <= n then
-            if queryServer then
-                return Xist_Friend:NewByBNetIndex(i)
-            end
+        if i < #instance.BNetFriends then
+            i = i + 1
             return instance.BNetFriends[i]
         end
     end
 end
 
 
-function Xist_FriendsList:IterateFriends(queryServer)
+function Xist_FriendsList:IterateFriends()
     local instance = self:Instance()
-    -- if local memory is dirty and we want to use local memory rather than querying the server,
-    -- then we need to clean up the dirty mess before we use it!
-    if instance.dirty and not queryServer then
-        self:Cleanup()
-    end
-    local i = 0
-    local n1 = self:GetNumToonFriends()
-    local n2 = self:GetNumBNetFriends()
+
+    -- if we need to refresh from the server, do it before we start to iterate
+    if instance.dirty then self:Cleanup() end
+
+    local i, j = 0, 0
     return function()
-        i = i + 1
-        if i <= n1 then
-            if queryServer then
-                return Xist_Friend:NewByIndex(i)
-            end
+        if i < #instance.ToonFriends then
+            i = i + 1
             return instance.ToonFriends[i]
-        elseif i <= n2 then
-            if queryServer then
-                return Xist_Friend:NewByBNetIndex(i - n1)
-            end
-            return instance.BNetFriends[i - n1]
+        elseif j < #instance.BNetFriends then
+            j = j + 1
+            return instance.BNetFriends[j]
         end
     end
 end
@@ -119,54 +93,82 @@ function Xist_FriendsList:Cleanup()
     if instance.dirty then
         instance.dirty = false -- clear instance.dirty BEFORE iterating over friends
 
-        DEBUG("Syncing cache with server friends info")
+        DEBUG("Syncing with server...")
 
         instance.ToonFriends = {}
-        for friend in Xist_FriendsList:IterateToonFriends(true) do
+        local n = C_FriendList.GetNumFriends()
+        local friend
+        for i = 1, n do
+            friend = Xist_Friend:NewByIndex(i)
+            DEBUG("[".. i .."] Toon friend:", {name=friend:GetName(), inGame=friend:IsInGame(), battleTag=friend:GetBattleTag()})
             table.insert(instance.ToonFriends, friend)
         end
 
         instance.BNetFriends = {}
-        for friend in Xist_FriendsList:IterateBNetFriends(true) do
+        n = BNGetNumFriends()
+        for i = 1, n do
+            friend = Xist_Friend_BattleNet:NewByIndex(i)
+            DEBUG("[".. i .."] BattleNet friend:", {name=friend:GetName(), inGame=friend:IsInGame(), battleTag=friend:GetBattleTag()})
             table.insert(instance.BNetFriends, friend)
         end
     end
 end
 
 
-function Xist_FriendsList:IsToonFriend(name)
+function Xist_FriendsList:GetToonFriend(fullName)
     for friend in self:IterateToonFriends() do
-        if friend:GetName() == name then
-            return friend:IsToonFriend()
+        if friend:GetName(true) == fullName then
+            return friend
         end
     end
-    return false
+    return nil
 end
 
 
-function Xist_FriendsList:IsBNetFriend(name)
+function Xist_FriendsList:GetBNetFriend(fullName)
     for friend in self:IterateBNetFriends() do
-        if friend:GetName() == name then
-            return friend:IsBNetFriend()
+        if friend:GetToonName(true) == fullName then
+            return friend
         end
     end
-    return false
+    return nil
 end
 
 
-function Xist_FriendsList:IsFriend(name)
-    return self:IsToonFriend(name) or self:IsBNetFriend(name)
+function Xist_FriendsList:IsToonFriend(fullName)
+    local friend = self:GetToonFriend(fullName)
+    return friend and friend:IsFriend() or false
 end
 
 
+function Xist_FriendsList:IsBNetFriend(fullName)
+    local friend = self:GetBNetFriend(fullName)
+    return friend and friend:IsFriend() or false
+end
+
+
+function Xist_FriendsList:GetFriend(fullName)
+    -- search for a toon friend first, otherwise a BNet friend
+    return self:GetToonFriend(fullName) or self:GetBNetFriend(fullName) -- possibly nil
+end
+
+
+function Xist_FriendsList:IsFriend(fullName)
+    local friend = self:GetFriend(fullName)
+    return friend and friend:IsFriend() or false
+end
+
+
+--- Mark cached friends list as dirty when game notifies us of updates.
 local function OnFriendListUpdate()
-    DEBUG("Friends list updated")
+    DEBUG("Server notified of friends list update")
     Xist_FriendsList:Instance().dirty = true
 end
 
 
+--- Request server to send the most updated friends info.
 local function OnPlayerEnteringWorld()
-    DEBUG("Requesting friends list update")
+    DEBUG("Queueing friends list update")
     C_FriendList.ShowFriends() -- fires FRIENDLIST_UPDATE when complete
 end
 

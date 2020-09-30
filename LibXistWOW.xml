@@ -18,6 +18,7 @@
     <!-- Other Modules -->
     <Script file="Modules\Addon.lua"/>
     <Script file="Modules\Friend.lua"/>
+    <Script file="Modules\Friend\BattleNet.lua"/>
     <Script file="Modules\FriendsList.lua"/>
     <Script file="Modules\GameState.lua"/>
     <Script file="Modules\UI.lua"/>
