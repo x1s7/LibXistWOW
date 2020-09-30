@@ -15,6 +15,7 @@ Xist_Friend_BattleNet = M
 
 local DEBUG = protected.DEBUG
 local DEBUG_DUMP = protected.DEBUG_DUMP
+local ERROR = protected.ERROR
 local MESSAGE = protected.MESSAGE
 local WARNING = protected.WARNING
 
@@ -125,7 +126,8 @@ function Xist_Friend_BattleNet:GetToonName(wantFullName)
     wantFullName = wantFullName or false
     if self.BNetInfo then
         local gai = self.BNetInfo.gameAccountInfo
-        if gai and gai.characterLevel then
+        -- if this battle.net account is on a realm playing a toon, return the toon's name
+        if gai and gai.realmID > 0 and gai.characterName ~= nil then
             if wantFullName then
                 return gai.characterName .."-".. gai.realmName
             end
@@ -155,8 +157,8 @@ end
 function Xist_Friend_BattleNet:IsInGame()
     if self.BNetInfo then
         local gai = self.BNetInfo.gameAccountInfo
-        if gai then
-            return gai.isOnline and gai.realmName == PLAYER_REALM and gai.factionName == PLAYER_FACTION
+        if gai and gai.isOnline then
+            return gai.realmName == PLAYER_REALM and gai.factionName == PLAYER_FACTION
         end
     end
     return false
