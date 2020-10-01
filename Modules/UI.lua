@@ -59,7 +59,5 @@ StdUi.config = {
     },
 }
 
-local M = Xist_Module.AddModule(ModuleName, ModuleVersion)
-
 --- @class Xist_UI
-Xist_UI = M
+Xist_UI = Xist_Module.AddModule(ModuleName, ModuleVersion, StdUi)
