@@ -11,10 +11,13 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 --- @class Xist_EventHandler
 Xist_EventHandler = M
 
---protected.DebugEnabled = true
+protected.DebugEnabled = true
+
+local DEBUG_CHAT_MSG_ADDON = false
 
 local DEBUG = protected.DEBUG
 local ERROR = protected.ERROR
+local WARNING = protected.WARNING
 
 protected.SUPPORTED_EVENTS = {
     ADDON_LOADED = {}, -- addon has loaded, saved data is now available
@@ -106,7 +109,7 @@ function Xist_EventHandler:RegisterEvent(eventName, callback)
     for _, f in ipairs(registeredCallbacks) do
         if f == callback then
             -- callback is already registered
-            DEBUG("RegisterEvent", {duplicate=true, eventName=eventName})
+            WARNING("RegisterEvent", eventName, {duplicate=true})
             return
         end
     end
@@ -114,13 +117,16 @@ function Xist_EventHandler:RegisterEvent(eventName, callback)
     -- add this new event callback
     table.insert(registeredCallbacks, callback)
 
-    DEBUG("RegisterEvent", {duplicate=false, eventName=eventName})
+    DEBUG("RegisterEvent", eventName)
 end
 
 
 function Xist_EventHandler:TriggerEvent(eventName, ...)
 
-    DEBUG("TriggerEvent", {eventName=eventName}, ...)
+    -- debug all events EXCEPT CHAT_MSG_ADDON; that one requires a special toggle since it is quite verbose
+    if eventName ~= "CHAT_MSG_ADDON" or DEBUG_CHAT_MSG_ADDON then
+        DEBUG("TriggerEvent", {eventName=eventName}, Xist_Util.ToList(...))
+    end
 
     -- If this method was invoked as static, then use the global instance
     if self.isStatic then

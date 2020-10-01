@@ -15,6 +15,18 @@ end
 Xist_Util.version = ModuleVersion
 
 
+--- Join multiple arguments into a single list.
+--- @return table[]
+function Xist_Util.ToList(...)
+    local result = {}
+    local n = select('#', ...)
+    for i = 1, n do
+        result[i] = select(i, ...)
+    end
+    return result
+end
+
+
 --- Join multiple words together using delimiter.
 --- @param words table[]
 --- @param delimiter string
@@ -280,11 +292,11 @@ function Xist_Util.DeepCopy(orig)
 end
 
 
---- Split a fully qualified player name.
---- @param fqName string Name in the format "toon-realm"
---- @return string, string "toon", "realm"
-function Xist_Util.SplitFullyQualifiedPlayerName(fqName)
-    return Xist_Util.Split2(fqName, "-")
+--- Split a fully qualified toon name.
+--- @param name string Name in the format "toon-realm"
+--- @return string, string|nil "toon", "realm"
+function Xist_Util.SplitToonFullName(name)
+    return Xist_Util.Split2(name, "-")
 end
 
 

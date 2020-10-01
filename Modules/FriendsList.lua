@@ -11,7 +11,7 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 --- @class Xist_FriendsList
 Xist_FriendsList = M
 
---protected.DebugEnabled = true
+protected.DebugEnabled = true
 
 local DEBUG = protected.DEBUG
 local DEBUG_DUMP = protected.DEBUG_DUMP
@@ -19,6 +19,14 @@ local MESSAGE = protected.MESSAGE
 local WARNING = protected.WARNING
 
 local _instance
+
+local WANT_VERBOSE_DEBUG = false
+
+local function VERBOSE_DEBUG(...)
+    if WANT_VERBOSE_DEBUG then
+        DEBUG(...)
+    end
+end
 
 
 function Xist_FriendsList:Instance()
@@ -100,16 +108,16 @@ function Xist_FriendsList:Cleanup()
         local friend
         for i = 1, n do
             friend = Xist_Friend:NewByIndex(i)
-            DEBUG("[".. i .."] Toon friend:", {name=friend:GetName(), inGame=friend:IsInGame(), battleTag=friend:GetBattleTag()})
-            table.insert(instance.ToonFriends, friend)
+            VERBOSE_DEBUG("[".. i .."] Toon friend:", {name=friend:GetName(), inGame=friend:IsInGame(), battleTag=friend:GetBattleTag()})
+            instance.ToonFriends[i] = friend
         end
 
         instance.BNetFriends = {}
         n = BNGetNumFriends()
         for i = 1, n do
             friend = Xist_Friend_BattleNet:NewByIndex(i)
-            DEBUG("[".. i .."] BattleNet friend:", {name=friend:GetName(), inGame=friend:IsInGame(), battleTag=friend:GetBattleTag()})
-            table.insert(instance.BNetFriends, friend)
+            VERBOSE_DEBUG("[".. i .."] BattleNet friend:", {name=friend:GetName(), inGame=friend:IsInGame(), battleTag=friend:GetBattleTag()})
+            instance.BNetFriends[i] = friend
         end
     end
 end

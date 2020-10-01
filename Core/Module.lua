@@ -26,7 +26,7 @@ local DEBUG = print
 local function GeneratePrivateNamespace(module)
     local private = {}
 
-    private.Log = Xist_Log:New(module.name)
+    private.Log = Xist_Log:New(module._meta.name)
 
     private.DEBUG = private.Log:Proxy('LogDebug')
     private.DEBUG_DUMP = private.Log:Proxy('LogDebugDump')
@@ -77,8 +77,10 @@ function Xist_Module.Install(name, version, module)
     module._meta = {
         name = name,
         version = version,
-        private = GeneratePrivateNamespace(module),
     }
+
+    -- AFTER _meta is established, generate private namespace
+    module._meta.private = GeneratePrivateNamespace(module)
 
     -- AFTER the private namespace is generated, THEN the protected can be generated
     module._meta.protected = GenerateProtectedNamespace(module)

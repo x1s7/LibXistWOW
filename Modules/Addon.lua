@@ -53,6 +53,13 @@ function Xist_Addon:New(name, version)
     obj.bAnnounceLoad = false
     obj.bDebugEnabled = false
 
+    obj.aFrameEventRegistrations = {
+        "ADDON_LOADED",
+        "CHAT_MSG_ADDON",
+        "PLAYER_ENTERING_WORLD",
+        "PLAYER_LOGOUT",
+    }
+
     obj.log = Xist_Log:New(name)
 
     obj.private = {
@@ -71,8 +78,6 @@ function Xist_Addon:New(name, version)
         WARNING = obj.private.WARNING,
     }
 
-    obj:InitializeEvents()
-
     return obj
 end
 
@@ -90,24 +95,34 @@ function Xist_Addon:EnableDebug()
 end
 
 
+function Xist_Addon:DisableDebug()
+    self.bDebugEnabled = false
+    -- activate the debug logs
+    self.protected.DEBUG = protected.NOOP
+    self.protected.DEBUG_DUMP = protected.NOOP
+end
+
+
 function Xist_Addon:InitializeEvents()
 
-    local obj = self
-
+    local obj = self -- create an alias as using the name `self' in a callback can be tricky
     local objSpecificEventCallback = function(eventName, ...)
         return obj[eventName](obj, ...)
     end
 
-    local defaultEvents = {
-        "ADDON_LOADED",
-        "CHAT_MSG_ADDON",
-        "PLAYER_ENTERING_WORLD",
-        "PLAYER_LOGOUT",
-    }
-
-    for _, eventName in ipairs(defaultEvents) do
-        Xist_EventHandler:RegisterEvent(eventName, objSpecificEventCallback)
+    for _, eventName in ipairs(obj.aFrameEventRegistrations) do
+        if obj[eventName] then
+            Xist_EventHandler:RegisterEvent(eventName, objSpecificEventCallback)
+        else
+            -- Throw an exception, they asked to be notified of an event but they did not define a callback
+            error("Addon `".. obj.name .."' requested registration for event `".. eventName .."' but does not have the appropriate callback method")
+        end
     end
+end
+
+
+function Xist_Addon:Init()
+    self:InitializeEvents()
 end
 
 
@@ -146,16 +161,21 @@ function Xist_Addon:GetAddonMessagePrefix()
 end
 
 
+--- @param callback fun|nil
 function Xist_Addon:OnLoad(callback)
     self.OnLoadCallback = callback
 end
 
 
+--- @param callback fun|nil
 function Xist_Addon:OnLogout(callback)
     self.OnLogoutCallback = callback
 end
 
 
+--- An addon has loaded.
+--- @param name string name of the addon that loaded (maybe not our addon)
+--- @see https://wow.gamepedia.com/AddOn_loading_process
 function Xist_Addon:ADDON_LOADED(name)
     if name == self.name then
         -- our own addon has loaded
@@ -195,13 +215,18 @@ function Xist_Addon:CHAT_MSG_ADDON(prefix, text, channel, sender, target, zoneCh
 end
 
 
+--- Player is loading into a part of the world.
+--- This gets called on login, on /reload and also when zoning in/out of instances, etc.
+--- @param isInitialLogin boolean true if the player has just now logged in
+--- @param isReloadingUI boolean true if the user typed /reload, false on zoning in/out of instances etc
+--- @see https://wow.gamepedia.com/PLAYER_ENTERING_WORLD
 function Xist_Addon:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUI)
     DEBUG("PLAYER_ENTERING_WORLD", {isInitialLogin=isInitialLogin, isReloadingUI=isReloadingUI})
 
     -- Register for my own addon messages
     local prefix = self:GetAddonMessagePrefix()
     if prefix then
-        WARNING("Using prefix `".. prefix .."' for Addon messages")
+        DEBUG("Using prefix `".. prefix .."' for Addon messages")
         C_ChatInfo.RegisterAddonMessagePrefix(prefix)
     end
 end
