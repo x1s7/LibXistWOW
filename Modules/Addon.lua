@@ -8,7 +8,7 @@ local ModuleVersion = 1
 if not Xist_Module.NeedsUpgrade(ModuleName, ModuleVersion) then return end
 
 -- Initialize Xist_Addon
-local M, protected = Xist_Module.AddModule(ModuleName, ModuleVersion)
+local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 
 --- @class Xist_Addon
 Xist_Addon = M

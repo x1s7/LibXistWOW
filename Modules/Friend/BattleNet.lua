@@ -5,8 +5,8 @@ local ModuleVersion = 1
 -- If some other addon installed Xist_Friend_BattleNet, don't do it again
 if not Xist_Module.NeedsUpgrade(ModuleName, ModuleVersion) then return end
 
--- Initialize Xist_Friend_BattleNet, derived from Xist_Friend
-local M, protected = Xist_Module.AddModule(ModuleName, ModuleVersion, Xist_Friend:New())
+-- Initialize Xist_Friend_BattleNet, derived from AN INSTANCE OF Xist_Friend
+local M, protected = Xist_Module.Install(ModuleName, ModuleVersion, Xist_Friend:New())
 
 --- @class Xist_Friend_BattleNet
 Xist_Friend_BattleNet = M
