@@ -136,7 +136,13 @@ end
 
 
 function Xist_Addon:GetAddonMessagePrefix()
-    return self.name
+    local prefix = self.name
+    -- if this prefix is too long then we can't use it!
+    if strlen(prefix) > 16 then -- don't remember where I saw this 16 character limit...
+        WARNING("Addon prefix `".. prefix .."' is too long to use Addon messages")
+        return nil
+    end
+    return prefix
 end
 
 
@@ -153,17 +159,17 @@ end
 function Xist_Addon:ADDON_LOADED(name)
     if name == self.name then
         -- our own addon has loaded
-        DEBUG("ADDON_LOADED [ME] ".. name)
+        DEBUG("ADDON_LOADED [ME]", name)
 
         if self.OnLoadCallback then
             self.OnLoadCallback()
         end
 
-        if self.announceLoad then
-            self.protected.MESSAGE("Loaded version ".. tostring(self.version))
+        if self.bAnnounceLoad then
+            self.protected.MESSAGE("version", tostring(self.version), "loaded")
         end
     else
-        DEBUG("ADDON_LOADED ".. name)
+        DEBUG("ADDON_LOADED", name)
     end
 end
 
@@ -194,10 +200,9 @@ function Xist_Addon:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUI)
 
     -- Register for my own addon messages
     local prefix = self:GetAddonMessagePrefix()
-    if strlen(prefix) <= 16 then
+    if prefix then
+        WARNING("Using prefix `".. prefix .."' for Addon messages")
         C_ChatInfo.RegisterAddonMessagePrefix(prefix)
-    else
-        WARNING("Addon prefix `".. prefix .."' is too long to use Addon messages")
     end
 end
 
