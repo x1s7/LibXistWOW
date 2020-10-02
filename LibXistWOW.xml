@@ -23,6 +23,7 @@
     <Script file="Modules\Addon.lua"/>
     <Script file="Modules\FriendsList.lua"/>
     <Script file="Modules\GameState.lua"/>
+    <Script file="Modules\SaveData.lua"/>
     <Script file="Modules\UI.lua"/>
 
     <!-- depends on Modules\UI.lua -->

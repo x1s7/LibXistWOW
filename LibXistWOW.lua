@@ -10,11 +10,19 @@ addon:AnnounceLoad() -- let's see which version of the lib we have
 local function onSlashCommand(text)
     if text == "debug" then -- /libxist debug
         Xist_LogMessageContainer.Show()
-        addon.private.DEBUG("Showing debug log") -- whether or not debugging is on, let's see that we showed this
+        addon.protected.DEBUG("Showing debug log") -- whether or not debugging is on, let's see that we showed this
+    elseif text == "write save data" then
+        addon:WriteSaveData()
     end
 end
 
 addon:AddSlashCommand("libxist")
 addon:SetSlashCommandHandler(onSlashCommand)
+
+addon:OnLoad(function(addonRef)
+    local data = addonRef:GetDataReference()
+    addonRef:DEBUG("Loaded with data", data)
+    data.toggle = not data.toggle
+end)
 
 addon:Init()

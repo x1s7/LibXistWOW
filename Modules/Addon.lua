@@ -16,8 +16,6 @@ Xist_Addon = M
 --protected.DebugEnabled = true
 
 local DEBUG = protected.DEBUG
-local DEBUG_DUMP = protected.DEBUG_DUMP
-local MESSAGE = protected.MESSAGE
 local WARNING = protected.WARNING
 
 local PlayerName = UnitName("player")
@@ -25,16 +23,25 @@ local PlayerName = UnitName("player")
 local AddonInstances = {}
 
 
-function Xist_Addon.Instance(name)
+--- Get a addon instance by name.
+--- This throws an exception if there is no such addon.
+--- @param name string
+--- @param suppressException boolean default false; if true return nil instead of throwing an exception.
+--- @return Xist_Addon|nil
+function Xist_Addon.Instance(name, suppressException)
     local addon = AddonInstances[name]
-    if not addon then
+    if not addon and not suppressException then
         -- throw exception
         error("No such addon `".. name .."'")
     end
-    return addon
+    return addon -- could be nil
 end
 
 
+--- Create an addon.
+--- @param name string
+--- @param version Xist_Version|string|number
+--- @return Xist_Addon
 function Xist_Addon:New(name, version)
 
     name = name or AddonName
@@ -53,6 +60,10 @@ function Xist_Addon:New(name, version)
     obj.bAnnounceLoad = false
     obj.bDebugEnabled = false
 
+    obj.oSaveDataClass = Xist_SaveData
+    obj.tSaveDataScope = _G
+    obj.sSaveDataVarName = "XISTDATA__" .. name
+
     obj.aFrameEventRegistrations = {
         "ADDON_LOADED",
         "CHAT_MSG_ADDON",
@@ -62,7 +73,7 @@ function Xist_Addon:New(name, version)
 
     obj.log = Xist_Log:New(name)
 
-    obj.private = {
+    obj.protected = {
         DEBUG = obj.log:Proxy('LogDebug'),
         DEBUG_DUMP = obj.log:Proxy('LogDebugDump'),
         ERROR = obj.log:Proxy('LogError'),
@@ -70,39 +81,106 @@ function Xist_Addon:New(name, version)
         WARNING = obj.log:Proxy('LogWarning'),
     }
 
-    obj.protected = {
-        DEBUG = protected.NOOP,
-        DEBUG_DUMP = protected.NOOP,
-        ERROR = obj.private.ERROR,
-        MESSAGE = obj.private.MESSAGE,
-        WARNING = obj.private.WARNING,
-    }
+    obj.DEBUG = protected.NOOP
+    obj.DEBUG_DUMP = protected.NOOP
 
     return obj
 end
 
 
+--- Write data to the error log.
+--- This public method makes it easy for application code to log errors.
+--- @usage addon:ERROR("This is an error with data =", data)
+function Xist_Addon:ERROR(...)
+    return self.protected.ERROR(...)
+end
+
+
+--- Write data to the log.
+--- This public method makes it easy for application code to log messages.
+--- @usage addon:MESSAGE("Hello, your data =", data)
+function Xist_Addon:MESSAGE(...)
+    return self.protected.MESSAGE(...)
+end
+
+
+--- Write data to the warning log.
+--- This public method makes it easy for application code to log warnings.
+--- @usage addon:WARNING("Warning with data =", data)
+function Xist_Addon:WARNING(...)
+    return self.protected.WARNING(...)
+end
+
+
+--- Make the addon announce itself after it loads.
 function Xist_Addon:AnnounceLoad()
     self.bAnnounceLoad = true
 end
 
 
+--- Enable addon debugging.
+--- After calling this, debug messages will be written to the debug log.
+--- Note: If you saved references to self.DEBUG or self.DEBUG_DUMP, you MUST
+--- reassign them after calling this method.
 function Xist_Addon:EnableDebug()
     self.bDebugEnabled = true
     -- activate the debug logs
-    self.protected.DEBUG = self.private.DEBUG
-    self.protected.DEBUG_DUMP = self.private.DEBUG_DUMP
+    self.DEBUG = function (_, ...) self.protected.DEBUG(...) end
+    self.DEBUG_DUMP = function (_, ...) self.protected.DEBUG_DUMP(...) end
 end
 
 
+--- Disable addon debugging.
+--- After calling this, debug messages and code blocks will be suppressed.
+--- Note: If you saved references to self.DEBUG or self.DEBUG_DUMP, you MUST
+--- reassign them after calling this method.
 function Xist_Addon:DisableDebug()
     self.bDebugEnabled = false
-    -- activate the debug logs
-    self.protected.DEBUG = protected.NOOP
-    self.protected.DEBUG_DUMP = protected.NOOP
+    -- deactivate the debug logs
+    self.DEBUG = protected.NOOP
+    self.DEBUG_DUMP = protected.NOOP
 end
 
 
+--- Assign a specific class to handle SaveData operations.
+--- @param class Xist_SaveData derived class
+function Xist_Addon:SetSaveDataClass(class)
+    self.oSaveDataClass = class
+end
+
+
+--- Assign a non-global scope for SaveData operations.
+--- @param scope table
+function Xist_Addon:SetSaveDataScope(scope)
+    self.tSaveDataScope = scope
+end
+
+
+--- Set a specific name to use for SaveData.
+--- Note this name is in the GLOBAL SCOPE unless you reduce the scope yourself.
+--- This name MUST BE UNIQUE of you will have undefined SaveData results.
+function Xist_Addon:SetSaveDataName(name)
+    self.sSaveDataVarName = name
+end
+
+
+--- Get a reference to the SaveData data.
+--- This gives you a reference to the actual data that is saved, not the SaveData wrapper.
+--- @return any
+function Xist_Addon:GetDataReference()
+    return self.CacheData -- possibly nil
+end
+
+
+--- Set the SaveData data.
+--- Overwrite any existing SaveData data with the new data.
+--- @param data any
+function Xist_Addon:SetDataReference(data)
+    self.CacheData = data
+end
+
+
+--- Initialize the WOW Frame to listen on all events this addon cares about.
 function Xist_Addon:InitializeEvents()
 
     local obj = self -- create an alias as using the name `self' in a callback can be tricky
@@ -121,21 +199,27 @@ function Xist_Addon:InitializeEvents()
 end
 
 
+--- Initialize the addon.
+--- Call this after you've made whatever configuration changes you want.
 function Xist_Addon:Init()
     self:InitializeEvents()
 end
 
 
+--- @return string This addon's name
 function Xist_Addon:GetName()
     return self.name
 end
 
 
+--- @return Xist_Version This addon's version
 function Xist_Addon:GetVersion()
     return self.version
 end
 
 
+--- Add support for a slash command.
+--- @param commandName string Name of the slashcommand, NOT including the "/" (e.g. "libxist")
 function Xist_Addon:AddSlashCommand(commandName)
     local n = 1 + #self.slashCommands
     local addonIdent = string.upper(self.name)
@@ -144,12 +228,18 @@ function Xist_Addon:AddSlashCommand(commandName)
 end
 
 
+--- Set the slash command handler callback.
+--- @param callback fun(string) Function that takes a string argument with extra command parameters
 function Xist_Addon:SetSlashCommandHandler(callback)
     local addonIdent = string.upper(self.name)
     _G.SlashCmdList[addonIdent] = callback
 end
 
 
+--- Get the prefix for addon messages for this addon.
+--- By default this uses the addon's name, which if longer than 16 characters will NOT WORK as
+--- an addon prefix.
+--- @return string|nil
 function Xist_Addon:GetAddonMessagePrefix()
     local prefix = self.name
     -- if this prefix is too long then we can't use it!
@@ -161,19 +251,23 @@ function Xist_Addon:GetAddonMessagePrefix()
 end
 
 
+--- Install the OnLoad callback.
+--- This callback will be called as callback(addon) once the addon has loaded.
 --- @param callback fun|nil
 function Xist_Addon:OnLoad(callback)
     self.OnLoadCallback = callback
 end
 
 
+--- Install the OnLogout callback.
+--- This callback will be called as callback(addon) when the player logs out.
 --- @param callback fun|nil
 function Xist_Addon:OnLogout(callback)
     self.OnLogoutCallback = callback
 end
 
 
---- An addon has loaded.
+--- Handle an ADDON_LOADED event.
 --- @param name string name of the addon that loaded (maybe not our addon)
 --- @see https://wow.gamepedia.com/AddOn_loading_process
 function Xist_Addon:ADDON_LOADED(name)
@@ -181,8 +275,15 @@ function Xist_Addon:ADDON_LOADED(name)
         -- our own addon has loaded
         DEBUG("ADDON_LOADED [ME]", name)
 
+        -- read saved data (or construct new default)
+        self.SaveData = self.oSaveDataClass:New(self.sSaveDataVarName, self.tSaveDataScope)
+        self.CacheData = self.SaveData:Read()
+
+        DEBUG("self.CacheData = ", self.CacheData)
+
+        -- execute onload callback if any
         if self.OnLoadCallback then
-            self.OnLoadCallback()
+            self.OnLoadCallback(self)
         end
 
         if self.bAnnounceLoad then
@@ -194,14 +295,28 @@ function Xist_Addon:ADDON_LOADED(name)
 end
 
 
-function Xist_Addon:PLAYER_LOGOUT()
-    DEBUG("PLAYER_LOGOUT")
-    if self.OnLogoutCallback then
-        self.OnLogoutCallback()
+--- Commit changes to the save data.
+function Xist_Addon:WriteSaveData()
+    if self.SaveData then
+        self.SaveData:Write(self.CacheData)
     end
 end
 
 
+--- Handle a PLAYER_LOGOUT event.
+function Xist_Addon:PLAYER_LOGOUT()
+    DEBUG("PLAYER_LOGOUT")
+    -- execute any logout hook
+    if self.OnLogoutCallback then
+        self.OnLogoutCallback(self)
+    end
+    -- write whatever data is in the cache to the saved data for next load
+    self:WriteSaveData()
+end
+
+
+--- Handle a CHAT_MSG_ADDON event.
+--- This means an addon has sent us an event notification for a prefix we're registered to watch.
 --- @see https://wow.gamepedia.com/CHAT_MSG_ADDON
 function Xist_Addon:CHAT_MSG_ADDON(prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID)
     if prefix == self:GetAddonMessagePrefix() then
@@ -237,6 +352,8 @@ Xist_Addon.OnMyAddonMessageReceived = protected.NOOP
 Xist_Addon.OnOtherAddonMessageReceived = protected.NOOP
 
 
+--- Send an addon message.
+--- @param message string
 function Xist_Addon:SendAddonMessage(message)
     C_ChatInfo.SendAddonMessage(self:GetAddonMessagePrefix(), message, "GUILD", nil)
 end
