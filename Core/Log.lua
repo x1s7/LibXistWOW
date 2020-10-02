@@ -21,6 +21,9 @@ local DEFAULT_SETTINGS = {
     closeBracket = ">",
 }
 
+local debugMessageFrame
+local debugMessageQueue = { "--- begin debug log ---" }
+
 
 --- Create a new named log object.
 --- @param name string Name of the log (displayed in all messages unless empty)
@@ -37,6 +40,20 @@ function Xist_Log:New(name)
     obj.instance = obj
 
     return obj
+end
+
+
+--- Assign a specific scrolling message frame to be used for debug messages.
+--- @param frame MessageFrame
+--- @static
+function Xist_Log.AssignDebugMessageFrame(frame)
+    debugMessageFrame = frame
+
+    -- if there is a queue of events that need to go there, send them
+    for i = 1, #debugMessageQueue do
+        debugMessageFrame:AddMessage(debugMessageQueue[i])
+    end
+    debugMessageQueue = {} -- zero out the queue
 end
 
 
@@ -63,9 +80,11 @@ end
 
 
 --- Write out a log message.
+--- @param defaultFrame boolean if true, write this into the default chat frame
+--- @param debugFrame boolean if true, write this to the debug chat frame
 --- @param colorCode string
 --- @param category string|nil
-function Xist_Log:Write(colorCode, category, ...)
+function Xist_Log:Write(defaultFrame, debugFrame, colorCode, category, ...)
     local msg = {}, tmp
 
     if self.name then
@@ -84,27 +103,45 @@ function Xist_Log:Write(colorCode, category, ...)
 
     table.insert(msg, self:ColorText(colorCode, Xist_Util.Args2StringLiteral(...)))
 
-    print(Xist_Util.Join(msg, " "))
+    msg = Xist_Util.Join(msg, " ")
+
+    -- if we want to write this to the debug frame, and if there is one, then write there
+    if debugFrame then
+        if debugMessageFrame then
+            debugMessageFrame:AddMessage(msg)
+        else
+            -- there isn't yet a debugMessageFrame, so save this in the queue for later
+            table.insert(debugMessageQueue, msg)
+        end
+    end
+
+    -- if we want to write this to the default frame, then do so
+    if defaultFrame or not debugMessageFrame then
+        -- either we explicitly want this in the default frame, OR there is no debug message frame defined,
+        -- either way print this to the default frame
+        print(msg)
+    end
 end
 
 
 function Xist_Log:LogMessage(...)
-    return self:Write("message", nil, ...)
+    return self:Write(true, true, "message", nil, ...)
 end
 
 
 function Xist_Log:LogWarning(...)
-    return self:Write("warning", "WARNING", ...)
+    return self:Write(true, true, "warning", "WARNING", ...)
 end
 
 
 function Xist_Log:LogError(...)
-    return self:Write("error", "ERROR", ...)
+    return self:Write(true, true, "error", "ERROR", ...)
 end
 
 
 function Xist_Log:LogDebug(...)
-    return self:Write("debug", "DEBUG", ...)
+    -- DO NOT write debug output to the default frame by default
+    return self:Write(false, true, "debug", "DEBUG", ...)
 end
 
 

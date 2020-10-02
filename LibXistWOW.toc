@@ -1,6 +1,6 @@
 ## Interface: 11305
 ## Title: LibXistWOW
 ## Author: xist@xist.gg
-## Version: 0.0.3
+## Version: 0.0.4
 
 LibXistWOW.xml
