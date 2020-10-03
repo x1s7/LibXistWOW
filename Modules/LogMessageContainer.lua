@@ -34,6 +34,7 @@ local scrollbarWidth = 20
 local f = Xist_UI:Window(UIParent, width, height)
 f:SetFrameStrata("FULLSCREEN_DIALOG")
 f:SetPoint("CENTER")
+f:Hide() -- don't show this window unless we explicitly ask for it
 
 f.Messages = CreateFrame("ScrollingMessageFrame", nil, f)
 f.Messages:SetPoint("TOPLEFT", padding, 0 - headerHeight)
@@ -84,9 +85,3 @@ Xist_Log.AssignDebugMessageFrame(f.Messages)
 function Xist_LogMessageContainer.Show()
     f:Show()
 end
-
-f:Show()
-
---for i = 1, 200 do
---    f.Messages:AddMessage("TEST "..i)
---end
