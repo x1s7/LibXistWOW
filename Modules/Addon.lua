@@ -15,8 +15,7 @@ Xist_Addon = M
 
 --protected.DebugEnabled = true
 
-local DEBUG = protected.DEBUG
-local WARNING = protected.WARNING
+local VERBOSE_ADDON_LOADED_DEBUG = false
 
 local PlayerName = UnitName("player")
 
@@ -64,7 +63,9 @@ function Xist_Addon:New(name, version)
     obj.tSaveDataScope = _G
     obj.sSaveDataVarName = "XISTDATA__" .. name
 
-    obj.aFrameEventRegistrations = {
+    obj.oAddonEventHandler = Xist_EventHandler:NewAddonHandler(name)
+
+    obj.aGlobalEventRegistrations = {
         "ADDON_LOADED",
         "CHAT_MSG_ADDON",
         "PLAYER_ENTERING_WORLD",
@@ -75,6 +76,7 @@ function Xist_Addon:New(name, version)
 
     obj.protected = {
         DEBUG = obj.log:Proxy('LogDebug'),
+        DEBUG_CAT = obj.log:Proxy('LogCategorizedDebug'),
         DEBUG_DUMP = obj.log:Proxy('LogDebugDump'),
         ERROR = obj.log:Proxy('LogError'),
         MESSAGE = obj.log:Proxy('LogMessage'),
@@ -82,7 +84,13 @@ function Xist_Addon:New(name, version)
     }
 
     obj.DEBUG = protected.NOOP
+    obj.DEBUG_CAT = protected.NOOP
     obj.DEBUG_DUMP = protected.NOOP
+
+    -- if module debugging is enabled then enable debugging in addon instances by default
+    if protected.DebugEnabled then
+        obj:EnableDebug()
+    end
 
     return obj
 end
@@ -126,6 +134,7 @@ function Xist_Addon:EnableDebug()
     self.bDebugEnabled = true
     -- activate the debug logs
     self.DEBUG = function (_, ...) self.protected.DEBUG(...) end
+    self.DEBUG_CAT = function (_, ...) self.protected.DEBUG_CAT(...) end
     self.DEBUG_DUMP = function (_, ...) self.protected.DEBUG_DUMP(...) end
 end
 
@@ -138,6 +147,7 @@ function Xist_Addon:DisableDebug()
     self.bDebugEnabled = false
     -- deactivate the debug logs
     self.DEBUG = protected.NOOP
+    self.DEBUG_CAT = protected.NOOP
     self.DEBUG_DUMP = protected.NOOP
 end
 
@@ -188,8 +198,9 @@ function Xist_Addon:InitializeEvents()
         return obj[eventName](obj, ...)
     end
 
-    for _, eventName in ipairs(obj.aFrameEventRegistrations) do
+    for _, eventName in ipairs(obj.aGlobalEventRegistrations) do
         if obj[eventName] then
+            -- register in the global event handler for this event
             Xist_EventHandler:RegisterEvent(eventName, objSpecificEventCallback)
         else
             -- Throw an exception, they asked to be notified of an event but they did not define a callback
@@ -236,6 +247,14 @@ function Xist_Addon:SetSlashCommandHandler(callback)
 end
 
 
+--- Register for an addon-specific event.
+--- @param eventName string Name of an addon-specific event.
+--- @param callback fun
+function Xist_Addon:RegisterEvent(eventName, callback)
+    self.oAddonEventHandler:RegisterEvent(eventName, callback)
+end
+
+
 --- Get the prefix for addon messages for this addon.
 --- By default this uses the addon's name, which if longer than 16 characters will NOT WORK as
 --- an addon prefix.
@@ -244,26 +263,18 @@ function Xist_Addon:GetAddonMessagePrefix()
     local prefix = self.name
     -- if this prefix is too long then we can't use it!
     if strlen(prefix) > 16 then -- don't remember where I saw this 16 character limit...
-        WARNING("Addon prefix `".. prefix .."' is too long to use Addon messages")
+        self:WARNING("Addon prefix `".. prefix .."' is too long to use Addon messages")
         return nil
     end
     return prefix
 end
 
 
---- Install the OnLoad callback.
+--- Install an OnLoad callback.
 --- This callback will be called as callback(addon) once the addon has loaded.
 --- @param callback fun|nil
 function Xist_Addon:OnLoad(callback)
-    self.OnLoadCallback = callback
-end
-
-
---- Install the OnLogout callback.
---- This callback will be called as callback(addon) when the player logs out.
---- @param callback fun|nil
-function Xist_Addon:OnLogout(callback)
-    self.OnLogoutCallback = callback
+    self:RegisterEvent("OnLoad", callback)
 end
 
 
@@ -273,24 +284,24 @@ end
 function Xist_Addon:ADDON_LOADED(name)
     if name == self.name then
         -- our own addon has loaded
-        DEBUG("ADDON_LOADED [ME]", name)
+        self:DEBUG("ADDON_LOADED", name)
 
         -- read saved data (or construct new default)
         self.SaveData = self.oSaveDataClass:New(self.sSaveDataVarName, self.tSaveDataScope)
         self.CacheData = self.SaveData:Read()
 
-        DEBUG("self.CacheData = ", self.CacheData)
+        self:DEBUG("Read Save Data", self.CacheData)
+        self.oAddonEventHandler:TriggerEvent("OnSaveDataRead", self.CacheData)
 
         -- execute onload callback if any
-        if self.OnLoadCallback then
-            self.OnLoadCallback(self)
-        end
+        self.oAddonEventHandler:TriggerEvent("OnLoad", self)
 
         if self.bAnnounceLoad then
             self.protected.MESSAGE("version", tostring(self.version), "loaded")
         end
-    else
-        DEBUG("ADDON_LOADED", name)
+    elseif VERBOSE_ADDON_LOADED_DEBUG then
+        -- display verbose output regarding addon load order
+        self:DEBUG("[OTHER] ADDON_LOADED", name)
     end
 end
 
@@ -298,6 +309,9 @@ end
 --- Commit changes to the save data.
 function Xist_Addon:WriteSaveData()
     if self.SaveData then
+        -- before we write the save data, allow callbacks to make their updates to the cache
+        self.oAddonEventHandler:TriggerEvent("OnSaveDataWrite")
+        -- now write the save data
         self.SaveData:Write(self.CacheData)
     end
 end
@@ -305,11 +319,7 @@ end
 
 --- Handle a PLAYER_LOGOUT event.
 function Xist_Addon:PLAYER_LOGOUT()
-    DEBUG("PLAYER_LOGOUT")
-    -- execute any logout hook
-    if self.OnLogoutCallback then
-        self.OnLogoutCallback(self)
-    end
+    self:DEBUG("PLAYER_LOGOUT")
     -- write whatever data is in the cache to the saved data for next load
     self:WriteSaveData()
 end
@@ -336,12 +346,12 @@ end
 --- @param isReloadingUI boolean true if the user typed /reload, false on zoning in/out of instances etc
 --- @see https://wow.gamepedia.com/PLAYER_ENTERING_WORLD
 function Xist_Addon:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUI)
-    DEBUG("PLAYER_ENTERING_WORLD", {isInitialLogin=isInitialLogin, isReloadingUI=isReloadingUI})
+    self:DEBUG("PLAYER_ENTERING_WORLD", {isInitialLogin=isInitialLogin, isReloadingUI=isReloadingUI})
 
     -- Register for my own addon messages
     local prefix = self:GetAddonMessagePrefix()
     if prefix then
-        DEBUG("Using prefix `".. prefix .."' for Addon messages")
+        self:DEBUG("Using prefix `".. prefix .."' for Addon messages")
         C_ChatInfo.RegisterAddonMessagePrefix(prefix)
     end
 end
