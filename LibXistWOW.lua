@@ -22,8 +22,14 @@ addon:SetSlashCommandHandler(onSlashCommand)
 addon:OnLoad(function(addonRef)
     -- this just demonstrates save data read/write is working as this value changes every load
     local data = addonRef:GetDataReference()
-    addonRef:DEBUG("Loaded with data", data)
     data.toggle = not data.toggle
 end)
 
+local addonButton = Xist_AddonButton:New(addon)
+
+function addonButton:OnLeftClick()
+    Xist_LogMessageContainer.Show()
+end
+
+addonButton:Init()
 addon:Init()

@@ -13,7 +13,7 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 --- @class Xist_Addon
 Xist_Addon = M
 
---protected.DebugEnabled = true
+protected.DebugEnabled = true
 
 local VERBOSE_ADDON_LOADED_DEBUG = false
 
