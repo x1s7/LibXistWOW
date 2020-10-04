@@ -20,7 +20,7 @@ local WARNING = protected.WARNING
 local width = UIParent:GetWidth() - 40
 local height = UIParent:GetHeight() - 40
 
-local HEIGHT_PER_LINE = 15 -- todo compute this based on the text height
+local HEIGHT_PER_LINE = 15 -- todo compute this based on the text height, wrong values make the scrolling not work well
 local MAX_LINES = 500
 local numMessages = 0
 
@@ -82,6 +82,7 @@ end
 
 Xist_Log.AssignDebugMessageFrame(f.Messages)
 
+--- Show the debug log frame.
 function Xist_LogMessageContainer.Show()
     f:Show()
 end
