@@ -318,3 +318,14 @@ end
 function Xist_Util.SplitBattleTag(battleTag)
     return Xist_Util.Split2(battleTag, "#")
 end
+
+
+--- Bind a callback method to an object.
+--- @param obj table
+--- @param method fun(...)
+--- @return fun(...)
+function Xist_Util.Bind(obj, method)
+    return function (...)
+        return method(obj, ...)
+    end
+end
