@@ -118,7 +118,7 @@ function Xist_EventHandler:RegisterEvent(eventName, callback)
     if not eventInfo.isRegistered then
         eventInfo.isRegistered = true
         -- events starting with XIST_ are meta events; don't try to register those
-        if string.sub(eventName, 1, 5) ~= "XIST_" then
+        if self.isGlobal and string.sub(eventName, 1, 5) ~= "XIST_" then
             _GlobalFrame:RegisterEvent(eventName)
         end
     end
