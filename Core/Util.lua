@@ -273,6 +273,18 @@ function Xist_Util.Args2StringLiteral(...)
 end
 
 
+--- Return an array of literal string translations of all arguments.
+--- @return table[]
+function Xist_Util.Args2StringArrayLiteral(...)
+    local r = {}
+    local n = select("#", ...)
+    for i = 1, n do
+        r[i] = Xist_Util.ValueAsStringLiteral(select(i, ...), 1) -- max depth 1
+    end
+    return r
+end
+
+
 --- Make a deep copy of a table.
 --- @param orig table the original table
 --- @return table a copy of orig

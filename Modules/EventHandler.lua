@@ -15,7 +15,7 @@ protected.DebugEnabled = true
 
 local DEBUG_CHAT_MSG_ADDON = false
 
-local DEBUG = protected.DEBUG
+local DEBUG_CAT = protected.DEBUG_CAT
 local ERROR = protected.ERROR
 local WARNING = protected.WARNING
 
@@ -117,7 +117,7 @@ function Xist_EventHandler:RegisterEvent(eventName, callback)
     -- add this new event callback
     table.insert(registeredCallbacks, callback)
 
-    DEBUG("RegisterEvent", eventName)
+    DEBUG_CAT(self.ident, "RegisterEvent", eventName)
 end
 
 
@@ -125,7 +125,7 @@ function Xist_EventHandler:TriggerEvent(eventName, ...)
 
     -- debug all events EXCEPT CHAT_MSG_ADDON; that one requires a special toggle since it is quite verbose
     if eventName ~= "CHAT_MSG_ADDON" or DEBUG_CHAT_MSG_ADDON then
-        DEBUG("TriggerEvent", {eventName=eventName}, Xist_Util.ToList(...))
+        DEBUG_CAT(self.ident, "TriggerEvent", {eventName=eventName}, Xist_Util.ToList(...))
     end
 
     -- If this method was invoked as static, then use the global instance

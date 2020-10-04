@@ -101,7 +101,12 @@ function Xist_Log:Write(defaultFrame, debugFrame, colorCode, category, ...)
         table.insert(msg, tmp)
     end
 
-    table.insert(msg, self:ColorText(colorCode, Xist_Util.Args2StringLiteral(...)))
+    -- colorize every word they gave us -- some may include colorizations that throw off others,
+    -- so we just wrap every single word in a color code.
+    local words = Xist_Util.Args2StringArrayLiteral(...)
+    for i = 1, #words do
+        table.insert(msg, self:ColorText(colorCode, words[i]))
+    end
 
     msg = Xist_Util.Join(msg, " ")
 
@@ -142,6 +147,16 @@ end
 function Xist_Log:LogDebug(...)
     -- DO NOT write debug output to the default frame by default
     return self:Write(false, true, "debug", "DEBUG", ...)
+end
+
+
+function Xist_Log:LogCategorizedDebug(category, ...)
+    local colorizedCategory = self:ColorText("debugType", self.settings.openBracket) ..
+            self:ColorText("debugType", category) ..
+            self:ColorText("debugType", self.settings.closeBracket)
+
+    -- DO NOT write debug output to the default frame by default
+    return self:Write(false, true, "debug", "DEBUG", colorizedCategory, ...)
 end
 
 

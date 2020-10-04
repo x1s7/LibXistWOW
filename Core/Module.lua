@@ -29,6 +29,7 @@ local function GeneratePrivateNamespace(module)
     private.Log = Xist_Log:New(module._meta.name)
 
     private.DEBUG = private.Log:Proxy('LogDebug')
+    private.DEBUG_CAT = private.Log:Proxy('LogCategorizedDebug')
     private.DEBUG_DUMP = private.Log:Proxy('LogDebugDump')
 
     return private
@@ -48,6 +49,12 @@ local function GenerateProtectedNamespace(module)
     protected.DEBUG = function(...)
         if protected.DebugEnabled == true then
             return private.DEBUG(...)
+        end
+    end
+
+    protected.DEBUG_CAT = function(...)
+        if protected.DebugEnabled == true then
+            return private.DEBUG_CAT(...)
         end
     end
 
