@@ -55,13 +55,6 @@ function Xist_SaveData:GetData()
 end
 
 
---- Generate new default data.
---- @return any
-function Xist_SaveData:GenerateDefaultData()
-    return {}
-end
-
-
 --- Create meta data for this data.
 --- If this save already contains meta data, keep it.
 --- @param data any
@@ -102,9 +95,8 @@ function Xist_SaveData:Read()
     end
     -- if there is no valid save data, generate a default
     if not valid then
-        DEBUG("Read: `".. self.name .."' using generated default data")
-        local default = self:GenerateDefaultData()
-        metaData = self:CreateMetaData(default)
+        DEBUG("Read: `".. self.name .."' returning nil data")
+        metaData = self:CreateMetaData(nil)
     end
     self.metaData = metaData
     return metaData.data -- possibly nil
