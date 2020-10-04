@@ -19,6 +19,8 @@ local MESSAGE = protected.MESSAGE
 local WARNING = protected.WARNING
 
 local inCombat = false
+local combatStartTime = 0
+local combatStopTime = 0
 
 
 function Xist_GameState:New()
@@ -34,17 +36,25 @@ function Xist_GameState:IsInCombat()
 end
 
 
+function Xist_GameState:GetCombatDuration()
+    local t = inCombat and time() or combatStopTime
+    return t - combatStartTime
+end
+
+
 local function OnRegenEnabled()
     -- regen is enabled, combat has ended
     inCombat = false
+    combatStopTime = time()
     -- trigger the event in the global scope for all addons
-    Xist_EventHandler:TriggerEvent("XIST_COMBAT_ENDED")
+    Xist_EventHandler:TriggerEvent("XIST_COMBAT_ENDED", combatStopTime - combatStartTime)
 end
 
 
 local function OnRegenDisabled()
     -- regen has been disabled, combat has started
     inCombat = true
+    combatStartTime = time()
     -- trigger the event in the global scope for all addons
     Xist_EventHandler:TriggerEvent("XIST_COMBAT_STARTED")
 end
