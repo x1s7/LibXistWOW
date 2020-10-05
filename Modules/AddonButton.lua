@@ -68,9 +68,8 @@ function Xist_AddonButton:OnSaveDataRead(data)
         self.config = self:GetDefaultConfig()
     end
 
-    -- Construct the button now that we've read the config
-    self.button = self:CreateButton()
-    self.button = self:InitializeButton(self.button)
+    -- initialize the button now that we've read the config
+    self:InitializeButton()
 
     -- reset the position based on the save data
     self:SetPosition()
@@ -87,8 +86,12 @@ end
 function Xist_AddonButton:Init()
     -- Hook into the "addon data has been read" event
     self.addon:RegisterEvent("OnSaveDataRead", Xist_Util.Bind(self, self.OnSaveDataRead))
+
     -- Hook into the "about to write addon data" event
     self.addon:RegisterEvent("OnSaveDataWrite", Xist_Util.Bind(self, self.OnSaveDataWrite))
+
+    -- create the base button; config is not yet available so this should be real simple
+    self.button = self:CreateButton()
 end
 
 
@@ -116,6 +119,9 @@ local function onDragStop(button)
 end
 
 
+--- Create a button to be used as the addon button.
+--- Note: This is called BEFORE save data is available.
+--- @return Button
 function Xist_AddonButton:CreateButton()
     local width, height = 24, 24
     local button = Xist_UI:Button(UIParent, width, height, "*")
@@ -123,7 +129,11 @@ function Xist_AddonButton:CreateButton()
 end
 
 
-function Xist_AddonButton:InitializeButton(button)
+--- Initialize a button with custom settings.
+--- This is called after save data is available, so self.config can be used to customize this.
+function Xist_AddonButton:InitializeButton()
+    local button = self.button
+
     -- save a reference back to self
     button.xObj = self
 
