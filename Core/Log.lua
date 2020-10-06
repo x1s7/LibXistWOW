@@ -35,10 +35,6 @@ function Xist_Log:New(name)
     }
     setmetatable(obj, self)
     self.__index = self
-
-    -- a reference to self for proxy calls
-    obj.instance = obj
-
     return obj
 end
 
@@ -61,7 +57,7 @@ end
 --- @param methodName string Name of a Xist_Log method
 --- @return fun
 function Xist_Log:Proxy(methodName, ...)
-    local instance = self.instance
+    local instance = self
     return function(...)
         return instance[methodName](instance, ...)
     end
