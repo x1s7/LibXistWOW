@@ -150,8 +150,6 @@ function Xist_AddonButton:InitializeButton()
 
     -- Show the button by default
     button:Show()
-
-    return button
 end
 
 

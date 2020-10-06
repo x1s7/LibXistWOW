@@ -63,7 +63,7 @@ StdUi.config = {
 Xist_UI = Xist_Module.Install(ModuleName, ModuleVersion, StdUi)
 
 
--- Initialize Xist_UI
+-- Initialize Xist_UI_Context
 local StdContextUi = LibStub("StdUi"):NewInstance()
 
 local contextMenuOverrides = {
@@ -73,12 +73,11 @@ local contextMenuOverrides = {
         },
     },
     backdrop = {
-        panel = { r = 0.05, g = 0, b = 0, a = 0.95 },
+        panel = { r = 0, g = 0, b = 0.05, a = 0.95 },
     },
 }
 
 StdContextUi.config = Xist_Util.ApplyConfigOverrides(StdUi.config, contextMenuOverrides)
-
 
 --- @class Xist_UI_Context
 Xist_UI_Context = Xist_Module.Install(ModuleName.."_Context", ModuleVersion, StdContextUi)
