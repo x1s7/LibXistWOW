@@ -126,9 +126,11 @@ end
 function Xist_FriendsList:GetToonFriend(fullName)
     for friend in self:IterateToonFriends() do
         if friend:GetName(true) == fullName then
+            DEBUG("Found toon friend `".. fullName .."'")
             return friend
         end
     end
+    DEBUG("No such toon friend `".. fullName .."'")
     return nil
 end
 
@@ -136,22 +138,26 @@ end
 function Xist_FriendsList:GetBNetFriend(fullName)
     for friend in self:IterateBNetFriends() do
         if friend:GetToonName(true) == fullName then
+            DEBUG("Found BNet friend `".. fullName .."'")
             return friend
         end
     end
+    DEBUG("No such BNet friend `".. fullName .."'")
     return nil
 end
 
 
 function Xist_FriendsList:IsToonFriend(fullName)
     local friend = self:GetToonFriend(fullName)
-    return friend and friend:IsFriend() or false
+    if friend then return friend:IsFriend() end
+    return false
 end
 
 
 function Xist_FriendsList:IsBNetFriend(fullName)
     local friend = self:GetBNetFriend(fullName)
-    return friend and friend:IsFriend() or false
+    if friend then return friend:IsFriend() end
+    return false
 end
 
 
@@ -163,7 +169,8 @@ end
 
 function Xist_FriendsList:IsFriend(fullName)
     local friend = self:GetFriend(fullName)
-    return friend and friend:IsFriend() or false
+    if friend then return friend:IsFriend() end
+    return false
 end
 
 

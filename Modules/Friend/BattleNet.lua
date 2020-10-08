@@ -110,7 +110,10 @@ end
 
 
 function Xist_Friend_BattleNet:IsFriend()
-    return self.BNetInfo and self.BNetInfo.isFriend or false
+    if self.BNetInfo then
+        return self.BNetInfo.isFriend
+    end
+    return false
 end
 
 
@@ -122,6 +125,9 @@ function Xist_Friend_BattleNet:GetName()
 end
 
 
+--- Get the name of this friend's current toon, if any.
+--- @param wantFullName boolean
+--- @return string|nil
 function Xist_Friend_BattleNet:GetToonName(wantFullName)
     wantFullName = wantFullName or false
     if self.BNetInfo then

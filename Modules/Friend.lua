@@ -49,16 +49,32 @@ function Xist_Friend:GetBattleTag()
 end
 
 
-function Xist_Friend:IsFriend()
-    return self.ToonInfo and self.ToonInfo.isFriend
+function Xist_Friend:GetInternalDataKey(key, default)
+    if self.ToonInfo and self.ToonInfo[key] ~= nil then
+        return self.ToonInfo[key]
+    end
+    return default
 end
 
 
+function Xist_Friend:IsFriend()
+    return self:GetInternalDataKey("isFriend", false)
+end
+
+
+--- Is this a BattleNet friend?
+--- For toon friends this will always return false since GetBattleTag() returns nil for toon friends.
+--- Xist_Friend_BattleNet overrides GetBattleTag() to return non-nil, which then makes this return true.
+--- @return boolean
 function Xist_Friend:IsBattleNetFriend()
     return self:GetBattleTag() ~= nil
 end
 
 
+--- Get this friend's name.
+--- For a toon friend, this is the same as their toon name.
+--- @param wantFullName boolean
+--- @return string|nil
 function Xist_Friend:GetName(wantFullName)
     if self.ToonInfo then
         if wantFullName then
@@ -70,22 +86,25 @@ function Xist_Friend:GetName(wantFullName)
 end
 
 
+--- Get the name of this friend's current toon.
+Xist_Friend.GetToonName = Xist_Friend.GetName
+
+
 function Xist_Friend:GetGUID()
-    if self.ToonInfo then
-        return self.ToonInfo.guid
-    end
-    return nil
+    return self:GetInternalDataKey("guid", false)
 end
 
 
+--- Is the friend currently online?
+--- @return boolean
 function Xist_Friend:IsOnline()
-    if self.ToonInfo then
-        return self.ToonInfo.connected
-    end
-    return false
+    return self:GetInternalDataKey("connected", false)
 end
 
 
+--- Is the friend currently in game?
+--- For toon friends this always returns true if they are online.
+--- @return boolean
 function Xist_Friend:IsInGame()
     return self:IsOnline()
 end
