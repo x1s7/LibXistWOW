@@ -25,7 +25,14 @@ addon:OnLoad(function(addonRef)
     data.toggle = not data.toggle
 end)
 
-local addonButton = Xist_AddonButton:New(addon)
+local showDebugLog = function() Xist_LogMessageContainer.Show(); return true end
+
+local contextMenuOptions = {
+    {title = addon:GetName(), color = {1, 1, 0}},
+    {text = "Debug Log", callback = showDebugLog},
+}
+
+local addonButton = Xist_AddonButton:New(addon, contextMenuOptions)
 
 function addonButton:OnLeftClick()
     Xist_LogMessageContainer.Show()

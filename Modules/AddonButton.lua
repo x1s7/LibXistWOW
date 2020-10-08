@@ -19,14 +19,16 @@ local WARNING = protected.WARNING
 
 --- Create an addon button
 --- @param addon Xist_Addon
+--- @param options table[] Xist_UI.ContextMenu options
 --- @return Xist_AddonButton
-function Xist_AddonButton:New(addon)
+function Xist_AddonButton:New(addon, options)
 
     local obj = {}
     setmetatable(obj, self)
     self.__index = self
 
     obj.addon = addon
+    obj.ContextMenuOptions = options
 
     return obj
 end
@@ -92,6 +94,10 @@ function Xist_AddonButton:Init()
 
     -- create the base button; config is not yet available so this should be real simple
     self.button = self:CreateButton()
+
+    -- create the button's context menu
+    self.menu = Xist_UI_Context:ContextMenu(self.button, self.ContextMenuOptions)
+    self.menu:Hide()
 end
 
 
@@ -166,24 +172,24 @@ end
 --- Handle the user clicking the AddonButton with the left mouse button.
 --- You MUST derive your own class and implement this method if you want left button support.
 --- @virtual
-function Xist_AddonButton:OnLeftClick()
-end
+Xist_AddonButton.OnLeftClick = protected.NOOP
 
 
 --- Handle the user clicking the AddonButton with the right mouse button.
 --- You MUST derive your own class and implement this method if you want right button support.
 --- @virtual
-function Xist_AddonButton:OnRightClick()
-end
+Xist_AddonButton.OnRightClick = protected.NOOP
 
 
 --- Handle user clicking the AddonButton.
 --- @param clickType string The type of click to handle ("LeftButton" or "RightButton")
 --- @see https://wowwiki.fandom.com/wiki/API_Button_RegisterForClicks
 function Xist_AddonButton:OnClick(clickType)
-    self:DEBUG("OnClick", clickType)
+    --self:DEBUG("OnClick", clickType)
     if clickType == "LeftButton" then
         self:OnLeftClick()
+        -- any time left button is clicked, make sure the context menu is hidden
+        if self.menu then self.menu:Hide() end
     elseif clickType == "RightButton" then
         self:OnRightClick()
     end
