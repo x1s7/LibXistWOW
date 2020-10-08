@@ -50,15 +50,25 @@ end
 
 
 function Xist_Friend:GetInternalDataKey(key, default)
-    if self.ToonInfo and self.ToonInfo[key] ~= nil then
-        return self.ToonInfo[key]
+    if self.ToonInfo then
+        if self.ToonInfo[key] ~= nil then
+            DEBUG("GetInternalDataKey `".. key .."' =", self.ToonInfo[key])
+            return self.ToonInfo[key]
+        else
+            DEBUG("GetInternalDataKey `".. key .."' is nil")
+        end
+    else
+        DEBUG("GetInternalDataKey `".. key .."' before loading ToonInfo")
     end
     return default
 end
 
 
+--- Is this friend a friend?
+--- In the case of a Toon friend, all friends added as contacts are friends.
+--- @return boolean
 function Xist_Friend:IsFriend()
-    return self:GetInternalDataKey("isFriend", false)
+    return true
 end
 
 

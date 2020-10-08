@@ -101,7 +101,7 @@ function Xist_FriendsList:Cleanup()
     if instance.dirty then
         instance.dirty = false -- clear instance.dirty BEFORE iterating over friends
 
-        DEBUG("Syncing with server...")
+        DEBUG("Syncing with server")
 
         instance.ToonFriends = {}
         local n = C_FriendList.GetNumFriends()
