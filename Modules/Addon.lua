@@ -287,8 +287,9 @@ function Xist_Addon:ADDON_LOADED(name)
         self:DEBUG("ADDON_LOADED", name)
 
         -- read saved data (or construct new default)
+        -- never use nil CacheData; other modules need a namespace for OnSaveDataRead/OnSaveDataWrite
         self.SaveData = self.oSaveDataClass:New(self.sSaveDataVarName, self.tSaveDataScope)
-        self.CacheData = self.SaveData:Read()
+        self.CacheData = self.SaveData:Read() or {}
 
         self:DEBUG("Read Save Data", self.CacheData)
         self.oAddonEventHandler:TriggerEvent("OnSaveDataRead", self.CacheData)
