@@ -22,10 +22,18 @@ StdUi.config = {
         },
     },
 
+    fontClasses = {
+        messages = {
+            size = 12,
+            justifyH = 'LEFT',
+        },
+    },
+
     backdrop = {
         texture        = [[Interface\Buttons\WHITE8X8]],
         panel          = { r = 0, g = 0.05, b = 0, a = 0.95 },
         slider         = { r = 0.15, g = 0.15, b = 0.15, a = 1 },
+        messages       = { r = 0.15, g = 0.15, b = 0.15, a = 1 },
 
         highlight      = { r = 0.40, g = 0.40, b = 0, a = 0.5 },
         button         = { r = 0.20, g = 0.20, b = 0.20, a = 1 },
