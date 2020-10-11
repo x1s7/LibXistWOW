@@ -1,6 +1,0 @@
-[submodule "Libs/LibStub"]
-	path = Libs/LibStub
-	url = https://github.com/x1s7/LibStub
-[submodule "Libs/StdUi"]
-	path = Libs/StdUi
-	url = https://github.com/x1s7/StdUi
