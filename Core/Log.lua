@@ -119,7 +119,7 @@ function Xist_Log:Write(defaultFrame, debugFrame, colorCode, category, ...)
     -- if we want to write this to the default frame, then do so
     if defaultFrame or not debugMessageFrame then
         -- either we explicitly want this in the default frame, OR there is no debug message frame defined,
-        -- either way print this to the default frame
+        -- either way output this to the default frame
         print(msg)
     end
 end

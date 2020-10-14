@@ -13,6 +13,8 @@ local function onSlashCommand(text)
         addon.protected.DEBUG("Showing debug log") -- whether or not debugging is on, let's see that we showed this
     elseif text == "write save data" then
         addon:WriteSaveData()
+    else
+        addon:ERROR("Invalid command `/libxist ".. text .."'")
     end
 end
 

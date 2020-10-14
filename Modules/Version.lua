@@ -110,7 +110,7 @@ end
 
 --- Parse a version string into a Xist_Version
 --- @param versionStr string format "major.minor.patch-tag"
---- @param silent boolean if true no warnings will be printed
+--- @param silent boolean if true no warnings will be issued
 --- @return Xist_Version
 function Xist_Version:Parse(versionStr, silent)
     if type(versionStr) ~= "string" then
