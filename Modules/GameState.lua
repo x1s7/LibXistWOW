@@ -46,6 +46,8 @@ local function OnRegenEnabled()
     -- regen is enabled, combat has ended
     inCombat = false
     combatStopTime = time()
+    -- Redisplay Xist_UI
+    Xist_UI.UIParent:Show()
     -- trigger the event in the global scope for all addons
     Xist_EventHandler:TriggerEvent("XIST_COMBAT_ENDED", combatStopTime - combatStartTime)
 end
@@ -55,6 +57,8 @@ local function OnRegenDisabled()
     -- regen has been disabled, combat has started
     inCombat = true
     combatStartTime = time()
+    -- Hide Xist_UI
+    Xist_UI.UIParent:Hide()
     -- trigger the event in the global scope for all addons
     Xist_EventHandler:TriggerEvent("XIST_COMBAT_STARTED")
 end

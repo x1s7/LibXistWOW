@@ -42,10 +42,13 @@ protected.ADDON_SPECIFIC_EVENTS = {
     OnSaveDataWrite = {}, -- need to write any changes to save data
 }
 
+protected.SLIDER_SPECIFIC_EVENTS = {
+    OnValueChanged = {} -- any time the value of the slider changes -- callback(value, delta)
+}
+
 
 local _GlobalFrame = CreateFrame("FRAME", nil, UIParent)
 local _GlobalInstance
-
 
 Xist_EventHandler.isStatic = true
 
@@ -72,6 +75,16 @@ function Xist_EventHandler:NewAddonHandler(name)
     local obj = self:New()
     obj.ident = name
     obj.KnownEvents = protected.ADDON_SPECIFIC_EVENTS -- addon specific handler uses addon specific events
+    obj.isGlobal = false
+    return obj
+end
+
+
+--- @return Xist_EventHandler
+function Xist_EventHandler:NewSliderHandler()
+    local obj = self:New()
+    obj.ident = 'Xist_UI_Slider'
+    obj.KnownEvents = protected.SLIDER_SPECIFIC_EVENTS
     obj.isGlobal = false
     return obj
 end

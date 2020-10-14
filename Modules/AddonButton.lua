@@ -96,7 +96,7 @@ function Xist_AddonButton:Init()
     self.button = self:CreateButton()
 
     -- create the button's context menu
-    self.menu = Xist_UI_Context:ContextMenu(self.button, self.ContextMenuOptions)
+    self.menu = Xist_UI:ContextMenu(self.button, self.ContextMenuOptions)
     self.menu:Hide()
 end
 
@@ -129,8 +129,9 @@ end
 --- Note: This is called BEFORE save data is available.
 --- @return Button
 function Xist_AddonButton:CreateButton()
-    local width, height = 24, 24
-    local button = Xist_UI:Button(UIParent, width, height, "*")
+    local button = Xist_UI:Button(UIParent)
+    button:SetSize(24, 24)
+    button:SetText('*')
     return button
 end
 

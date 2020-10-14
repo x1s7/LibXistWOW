@@ -2,18 +2,37 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
 
-    <!-- Dependencies -->
-    <Include file="Libs\LibStub\LibStub.lua"/>
-    <Include file="Libs\StdUi\StdUi.xml"/>
-
     <!--Core-->
     <Script file="Core\Util.lua"/>
     <Script file="Core\Log.lua"/>
     <Script file="Core\Module.lua"/>
 
     <!-- Core Modules -->
+    <Script file="Modules\Config.lua"/>
     <Script file="Modules\EventHandler.lua"/>
     <Script file="Modules\Version.lua"/>
+
+    <!-- UI Modules -->
+    <Script file="Modules\UI\Button.lua"/>
+    <Script file="Modules\UI\Common.lua"/>
+    <Script file="Modules\UI\ContextMenu.lua"/>
+    <Script file="Modules\UI\Dialog.lua"/>
+    <Script file="Modules\UI\FauxScrollFrame.lua"/>
+    <Script file="Modules\UI\Font.lua"/>
+    <Script file="Modules\UI\FontString.lua"/>
+    <Script file="Modules\UI\Frame.lua"/>
+    <Script file="Modules\UI\Label.lua"/>
+    <Script file="Modules\UI\MessageFrame.lua"/>
+    <Script file="Modules\UI\ScrollFrame.lua"/>
+    <Script file="Modules\UI\ScrollingMessageFrame.lua"/>
+    <Script file="Modules\UI\Slider.lua"/>
+    <Script file="Modules\UI\Window.lua"/>
+
+    <!-- UI Wrapper (depends on above modules) -->
+    <Script file="Modules\UI.lua"/>
+
+    <!-- depends on Modules\UI.lua -->
+    <Script file="Modules\LogMessageContainer.lua"/>
 
     <!-- Base class BEFORE derived classes -->
     <Script file="Modules\Friend.lua"/>
@@ -24,11 +43,14 @@
     <Script file="Modules\AddonButton.lua"/>
     <Script file="Modules\FriendsList.lua"/>
     <Script file="Modules\GameState.lua"/>
+    <Script file="Modules\Queue.lua"/>
     <Script file="Modules\SaveData.lua"/>
-    <Script file="Modules\UI.lua"/>
 
-    <!-- depends on Modules\UI.lua -->
-    <Script file="Modules\LogMessageContainer.lua"/>
+    <!-- Unit Tests -->
+    <Script file="Modules\UnitTestFramework.lua"/>
+    <Script file="Modules\UnitTest.lua"/>
+    <Script file="Tests\Config.lua"/>
+    <Script file="Tests\Queue.lua"/>
 
     <!-- self addon -->
     <Script file="LibXistWOW.lua"/>
