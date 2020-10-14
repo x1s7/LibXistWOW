@@ -97,29 +97,6 @@ function Xist_Util.Slice(arr, off, len)
 end
 
 
---- Apply configuration overrides.
---- @param config table The original config table. Will be modified in-place if overwrite=false
---- @param overrides table A table containing override key=value pairs.
---- @param overwrite boolean|nil if true, modifies config in place
---- @return table
-function Xist_Util.ApplyConfigOverrides(config, overrides, overwrite)
-    -- make a copy of the original config
-    local result = overwrite and config or Xist_Util.DeepCopy(config)
-    for k, v in pairs(overrides) do
-        -- if config[k] is nil OR if the override value is not a table OR if the config value is not a table,
-        -- then we want to replace table[k] entirely
-        if result[k] == nil or type(v) ~= 'table' or type(result[k]) ~= 'table' then
-            result[k] = v -- full config replace
-        else
-            -- both config[k] and v are tables, so apply the specific overrides from v to config[k]
-            -- For recursive calls we can modify config in-place since we've already made a deep copy if needed
-            Xist_Util.ApplyConfigOverrides(result[k], v, true)
-        end
-    end
-    return result
-end
-
-
 --- Merge subsequent tables into the first table.
 --- Data from later tables overwrites data from earlier tables.
 --- @usage local m = XT_Util.MergeInto({a=1}, {a=2}, {b=3}) -- result: m == {a=2, b=3}
