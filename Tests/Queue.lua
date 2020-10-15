@@ -149,6 +149,81 @@ UnitTest:AddTest('Custom data persists', function()
 end)
 
 
+local function customDataCallback(item, index)
+    -- if we have a recycled item, reinitialize it but keep the same table
+    if item then
+        item.index = index
+        item.customDataIsNew = false
+        return item
+    end
+    -- create a new item
+    return {
+        index = index,
+        customDataIsNew = true,
+    }
+end
+
+
+UnitTest:AddTest('Custom data callbacks', function()
+    local qSize = 5
+    local q = Xist_Queue:New(qSize)
+
+    -- allocate the queue with custom callback values
+    for _=1, qSize do
+        q:Allocate(customDataCallback)
+    end
+
+    local i = 0
+    for item in q:Iterate() do
+        i = i + 1
+        assert(item.index == i)
+        assert(item.customDataIsNew == true)
+    end
+end)
+
+
+UnitTest:AddTest('Custom data callbacks reused', function()
+    local qSize = 2
+    local q = Xist_Queue:New(qSize)
+
+    -- allocate the queue with custom callback values
+    -- allocate 2 times the max queue length so all items will be reused
+    for _=1, qSize * 2 do
+        q:Allocate(customDataCallback)
+    end
+
+    for item in q:Iterate() do
+        assert(item.customDataIsNew == false)
+    end
+end)
+
+
+UnitTest:AddTest('Sequential Get Previous/Next chaining', function()
+    local n = 2
+    local q = Xist_Queue:New(n)
+    AllocateN(q, n)
+    assert(q:GetPreviousItem(1) == nil, "There should be no item before the first")
+    assert(q:GetNextItem(1) ~= nil, "There should be an item after the first")
+    assert(q:GetNextItem(1).index == 2, "The second item index should be 2")
+    assert(q:GetPreviousItem(2) ~= nil, "The item before 2 should not be nil")
+    assert(q:GetPreviousItem(2).index == 1, "The item index before 2 should be 1")
+    assert(q:GetNextItem(2) == nil, "There should be no item after the last")
+end)
+
+
+UnitTest:AddTest('Non-sequential Get Previous/Next chaining', function()
+    local n = 2
+    local q = Xist_Queue:New(n)
+    AllocateN(q, n + 1) -- allocate 3 so it's non-sequential
+    assert(q:GetPreviousItem(1) == nil, "There should be no item before the first")
+    assert(q:GetNextItem(1) ~= nil, "There should be an item after the first")
+    assert(q:GetNextItem(1).index == 2, "The second item index should be 2")
+    assert(q:GetPreviousItem(2) ~= nil, "The item before 2 should not be nil")
+    assert(q:GetPreviousItem(2).index == 1, "The item index before 2 should be 1")
+    assert(q:GetNextItem(2) == nil, "There should be no item after the last")
+end)
+
+
 UnitTest:AddTest('Resize with Reorder preserves ordering', function()
     local qSize = 5
     local extra = 2

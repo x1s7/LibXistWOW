@@ -19,7 +19,7 @@ win:SetSize(800, 600)
 win:Hide() -- do not show by default
 
 local smf = Xist_UI:ScrollingMessageFrame(win)
-smf:SetMaxMessages(128)
+smf:SetMaxMessages(256)
 
 Xist_Log.AssignDebugMessageFrame(smf)
 

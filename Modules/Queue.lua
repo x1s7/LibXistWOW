@@ -33,13 +33,19 @@ end
 
 
 function Xist_Queue:CreateItem(index, data)
-    data = data and Xist_Util.DeepCopy(data) or {index = index}
+    if type(data) == 'function' then
+        data = data(nil, index)
+    else
+        data = data and Xist_Util.DeepCopy(data) or {index = index}
+    end
     return data
 end
 
 
-function Xist_Queue:ResetItem(index, data)
-    if data then
+function Xist_Queue:ResetItem(index, data, item)
+    if type(data) == 'function' then
+        data = data(item, index)
+    elseif data then
         data = Xist_Util.DeepCopy(data)
     else
         data = {
@@ -61,37 +67,53 @@ function Xist_Queue:GetMaxLength()
 end
 
 
+function Xist_Queue:GetPreviousItem(index)
+    if #self.items <= 1 or index == self.firstIndex then
+        return nil
+    end
+    local i
+    if index == 1 then
+        i = #self.items
+    else
+        i = index - 1
+    end
+    return self.items[i], i
+end
+
+
+function Xist_Queue:GetNextItem(index)
+    if #self.items <= 1 then
+        return nil
+    end
+    local i
+    if index == #self.items then
+        i = 1
+    else
+        i = index + 1
+    end
+    if i == self.firstIndex then
+        return nil
+    end
+    return self.items[i], i
+end
+
+
 function Xist_Queue:Iterate()
     local q = self
     local serial = self.serial
     local i = self.firstIndex
-    local n = 0
-    local done = false
+    local nextItem = q.items[i] -- possibly nil
     local item
     return function()
-        --DEBUG("Iterate", {n=n, i=i, done=done, len=#q.items})
-
-        n = n + 1
-        if n > #q.items then
-            done = true
-        end
-
-        if done then return nil end
 
         if q.serial ~= serial then
             error('Queue order changed while iterating')
         end
 
-        item = q.items[i]
+        item = nextItem
 
-        if i < #q.items then
-            i = i + 1
-        elseif i == q.items then
-            i = 1
-        end
-
-        if i == q.firstIndex then
-            done = true
+        if item then
+            nextItem, i = q:GetNextItem(i)
         end
 
         return item
@@ -144,7 +166,7 @@ function Xist_Queue:Allocate(data)
         item = self:CreateItem(index, data)
         self.items[index] = item
     else
-        item = self:ResetItem(index, data)
+        item = self:ResetItem(index, data, item)
     end
 
     if index < self.firstIndex then

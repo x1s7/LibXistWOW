@@ -11,29 +11,36 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 --- @class Xist_UI_ScrollFrame
 Xist_UI_ScrollFrame = M
 
-protected.DebugEnabled = true
+--protected.DebugEnabled = true
 
 local DEBUG = protected.DEBUG
+local MESSAGE = protected.MESSAGE
 
 
 function Xist_UI_ScrollFrame:InitializeScrollFrameWidget(scrollChild)
+    local classConf = self:GetWidgetClassConfig()
 
     local parent = self:GetParent()
-    local topOffset = parent.contentOffset or 0
-    local sidePadding = 0
-    local bottomPadding = 0
+    local topOffset = parent.contentOffset or classConf.topPadding or 0
+    local leftPadding = classConf.leftPadding or 0
+    local bottomPadding = classConf.bottomPadding or 0
+    local rightPadding = classConf.rightPadding or 0
 
-    self:SetPoint('TOPLEFT', sidePadding, -topOffset)
-    self:SetPoint('BOTTOMRIGHT', -sidePadding, bottomPadding)
+    self:SetPoint('TOPLEFT', leftPadding, -topOffset)
+    self:SetPoint('BOTTOMRIGHT', -rightPadding, bottomPadding)
 
     self:EnableMouse(true)
     self:EnableMouseWheel(true)
 
     self:SetScript('OnMouseWheel', self.OnMouseWheel)
 
+    -- we expect the children to be BIGGER in dimensions than this scrollFrame.
+    -- DON'T display the parts of the children that are outside of the area of this scrollFrame.
     self:SetClipsChildren(true)
 
-    local lineHeight = scrollChild.GetLineHeight and scrollChild:GetLineHeight() or 12
+    -- here we use default lineHeight == 12 if the scrollChild widget does not support
+    -- a GetLineHeight method.  12 is a random guess (font size 12px).  Is there a better guess?
+    local lineHeight = scrollChild.GetLineHeight and scrollChild:GetLineHeight() or classConf.defaultLineHeight or 12
 
     local slider = Xist_UI:Slider(self)
 
@@ -49,7 +56,10 @@ end
 
 function Xist_UI_ScrollFrame:OnScrollEvent(value, delta)
     local max = self.slider:GetMaxValue()
-    print('SF OnScrollEvent value='.. value ..' delta='.. delta ..'max='.. max ..' max-value='.. (max-value))
+
+    if protected.DebugEnabled then
+        print('SF OnScrollEvent value='.. value ..' delta='.. delta ..' max='.. max ..' max-value='.. (max-value))
+    end
 
     -- if we want to anchor to TOP, then do this:
     --self.scrollChild:SetPoint('TOP', self, 'TOP', 0, value)
@@ -68,8 +78,12 @@ end
 function Xist_UI_ScrollFrame:OnMouseWheel(direction)
     local slider = self.slider
     local value = slider:GetValue() + (-direction * slider:GetValueStep())
-    --local min, max = slider:GetMinMaxValues()
-    --print('  slider min='.. min ..' max='.. max ..' value='.. value)
+
+    if protected.DebugEnabled then
+        local min, max = slider:GetMinMaxValues()
+        print('  slider min='.. min ..' max='.. max ..' value='.. value)
+    end
+
     slider:SetValue(value)
 end
 
@@ -102,5 +116,9 @@ function Xist_UI_ScrollFrame:DebugDump()
         sliderMin = min,
         sliderVal = self.slider:GetValue(),
     }
-    DEBUG('ScrollFrame', m1, m2)
+
+    -- this method is called "DebugDump" but really we want to see this even when
+    -- debugging is disabled for this class.  This is called when a user clicks a
+    -- "show me info" button, so SHOW it, debugging enabled or not.
+    MESSAGE('ScrollFrame', m1, m2)
 end

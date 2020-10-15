@@ -155,8 +155,20 @@ local DEFAULT_CONFIG = Xist_Config:New({
     messageFrameClasses = {
         default = {
             parent = {'panelClasses', 'default'},
-            outerPadding = 4,
             fontClass = 'messages',
+            linePadding = 4,
+            lineSpacing = 2,
+            maxLines = 50,
+        },
+    },
+
+    scrollFrameClasses = {
+        default = {
+            topPadding = 0,
+            leftPadding = 0,
+            bottomPadding = 0,
+            rightPadding = 0,
+            defaultLineHeight = 12,
         },
     },
 

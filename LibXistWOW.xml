@@ -10,6 +10,7 @@
     <!-- Core Modules -->
     <Script file="Modules\Config.lua"/>
     <Script file="Modules\EventHandler.lua"/>
+    <Script file="Modules\Queue.lua"/>
     <Script file="Modules\Version.lua"/>
 
     <!-- UI Modules -->
@@ -43,7 +44,6 @@
     <Script file="Modules\AddonButton.lua"/>
     <Script file="Modules\FriendsList.lua"/>
     <Script file="Modules\GameState.lua"/>
-    <Script file="Modules\Queue.lua"/>
     <Script file="Modules\SaveData.lua"/>
 
     <!-- Unit Tests -->
