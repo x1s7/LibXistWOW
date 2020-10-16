@@ -237,6 +237,9 @@ local DEFAULT_CONFIG = Xist_Config:New({
 })
 
 
+--- Inherit parent classes into obj.
+--- @param obj table
+--- @param inheritClasses table[] list of classes
 local function InheritParentClasses(obj, inheritClasses)
     inheritClasses = inheritClasses or {Xist_UI_Common}
 
@@ -260,6 +263,12 @@ local function InheritParentClasses(obj, inheritClasses)
 end
 
 
+--- Initialize a widget.
+--- @param obj table
+--- @param type string
+--- @param className string
+--- @param config table
+--- @param inheritClasses table[]
 local function InitializeWidget(obj, type, className, config, inheritClasses)
     -- First inherit from the parent classes
     InheritParentClasses(obj, inheritClasses)
@@ -343,10 +352,12 @@ local function InitializeWidget(obj, type, className, config, inheritClasses)
 end
 
 
+--- Create a Font object.
+--- Read settings from the config to initialize the object.
 --- @param config Xist_Config
 --- @param class string
 --- @param colorCode string
---- @return FontInstance
+--- @return Font
 function Xist_UI:CreateFont(config, class, colorCode)
     class = class or 'default'
     colorCode = colorCode or 'default'
@@ -382,6 +393,12 @@ function Xist_UI:CreateFont(config, class, colorCode)
 end
 
 
+--- Get a font object.
+--- This caches the font at runtime so we only have to instantiate each class+colorCode once.
+--- @param config Xist_Config
+--- @param class string|nil
+--- @param colorCode string|nil
+--- @return Font
 function Xist_UI:GetFontObject(config, class, colorCode)
     class = class or 'default'
     colorCode = colorCode or 'default'

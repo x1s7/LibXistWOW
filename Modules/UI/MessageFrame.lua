@@ -29,11 +29,18 @@ function Xist_UI_MessageFrame:InitializeMessageFrameWidget()
 end
 
 
+--- Get the height of a single line of text.
+--- The returned value includes any spacing between lines.
+--- @return number
 function Xist_UI_MessageFrame:GetLineHeight()
     return self.lineSpacing + self.fontHeight
 end
 
 
+--- Set the parent frame.
+--- Once we change the parent frame we will also adjust the width/height of this MessageFrame
+--- to fill up the parent, and anchor this MessageFrame to the bottom of the parent frame.
+--- @param parent Frame
 function Xist_UI_MessageFrame:SetParent(parent)
     self:_SetParent(parent)
     self:SetWidth(parent:GetWidth())
@@ -43,21 +50,31 @@ function Xist_UI_MessageFrame:SetParent(parent)
 end
 
 
+--- Get the total height of the MessageFrame.
+--- @return number
 function Xist_UI_MessageFrame:GetTotalHeight()
     return self.totalHeight
 end
 
 
+--- Get the maximum number of messages kept in memory.
+--- @return number
 function Xist_UI_MessageFrame:GetMaxMessages()
     return self.messageQueue:GetMaxLength()
 end
 
 
+--- Set the maximum number of messages to store in memory.
+--- @param limit number
 function Xist_UI_MessageFrame:SetMaxMessages(limit)
     self.messageQueue:SetMaxLength(limit)
 end
 
 
+--- Allocate space to hold message data.
+--- This uses a Xist_Queue to ensure that we don't allocate infinite numbers of message data,
+--- and instead we keep memory usage to a minimum.
+--- @return table
 function Xist_UI_MessageFrame:AllocateMessageData()
     -- create new font string if needed, else reuse existing one
     local frame = self
@@ -85,6 +102,9 @@ function Xist_UI_MessageFrame:AllocateMessageData()
 end
 
 
+--- Add a message to the frame.
+--- If/when you add more than the max number of messages, old messages are "forgotten" from the display.
+--- @param text string The text of the message
 function Xist_UI_MessageFrame:AddMessage(text)
     local messageData = self:AllocateMessageData()
     local fontString = messageData.fontString
@@ -138,6 +158,8 @@ function Xist_UI_MessageFrame:AddMessage(text)
 end
 
 
+--- Dump debug info.
+--- This isn't ordinarily useful you're trying to debug scrolling.
 function Xist_UI_MessageFrame:DebugDump()
     local m1 = {
         nMsgs = self.messageQueue:GetLength(),

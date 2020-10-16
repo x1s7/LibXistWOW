@@ -19,6 +19,10 @@ local DEBUG = protected.DEBUG
 local DEFAULT_CLASS_NAME = 'default'
 
 
+--- Get a key from this object's config hierarchy, with a default if there is no such key.
+--- @param path string|table[]
+--- @param default any
+--- @return any
 function Xist_UI_Common:ConfigGet(path, default)
     local value = self.config:GetKey(path)
     if value == nil then
@@ -28,6 +32,10 @@ function Xist_UI_Common:ConfigGet(path, default)
 end
 
 
+--- Get a named widget setting, with a default if there is no such setting.
+--- @param name string
+--- @param default any
+--- @return any
 function Xist_UI_Common:GetWidgetSetting(name, default)
     if self.widgetSettings and self.widgetSettings[name] ~= nil then
         return self.widgetSettings[name]
@@ -36,6 +44,8 @@ function Xist_UI_Common:GetWidgetSetting(name, default)
 end
 
 
+--- Get/Cache this widget's config.
+--- @return table
 function Xist_UI_Common:GetWidgetClassConfig()
     -- if we haven't already computed the class config, do so now
     if not self.widgetClassConf then
@@ -83,6 +93,8 @@ function Xist_UI_Common:GetWidgetClassConfig()
 end
 
 
+--- Get this widget's backdrop config.
+--- @return table
 function Xist_UI_Common:GetBackdropConfig()
     -- if we have not already calculated the widget backdrop config, do so now
     if not self.widgetBackdropConfig then
@@ -122,6 +134,18 @@ function Xist_UI_Common:GetBackdropConfig()
 end
 
 
+--- Get a specific class of font from this widget's config, optionally of a specific color code.
+--- @param class string|nil 'default' if nil
+--- @param colorCode string|nil 'default' if nil
+--- @return Font
+function Xist_UI_Common:GetFontByClass(class, colorCode)
+    return Xist_UI:GetFontObject(self.config, class, colorCode)
+end
+
+
+--- Get this widget's font object, optionally of a specific color code.
+--- @param colorCode string|nil
+--- @return Font
 function Xist_UI_Common:GetWidgetFontObject(colorCode)
     local classConf = self:GetWidgetClassConfig()
     local fontClass = classConf.fontClass or self.widgetClass or 'default'
@@ -155,11 +179,6 @@ function Xist_UI_Common:InitializeBackdrop()
             --DEBUG('backdrop border color =', c)
         end
     end
-end
-
-
-function Xist_UI_Common:GetFontByClass(class, colorCode)
-    return Xist_UI:GetFontObject(self.config, class, colorCode)
 end
 
 
