@@ -51,6 +51,7 @@
     <Script file="Modules\UnitTest.lua"/>
     <Script file="Tests\Config.lua"/>
     <Script file="Tests\Queue.lua"/>
+    <Script file="Tests\Version.lua"/>
 
     <!-- self addon -->
     <Script file="LibXistWOW.lua"/>

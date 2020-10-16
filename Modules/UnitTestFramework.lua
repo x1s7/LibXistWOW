@@ -136,7 +136,7 @@ function Xist_UnitTestFramework:Run()
         local tests = class:GetTests()
         for _, testConfig in ipairs(tests) do
             framework:OnBeginTestClassTest(testConfig)
-            local success, err = pcall(testConfig.test)
+            local success, err = pcall(testConfig.test, testConfig)
             framework:OnEndTestClassTest(testConfig, success, err)
         end
         framework:OnEndTestClass(class)

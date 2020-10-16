@@ -12,6 +12,9 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 Xist_UnitTest = M
 
 
+--- Create a new UnitTest with a given name.
+--- @param testModuleName string
+--- @return Xist_UnitTest
 function Xist_UnitTest:New(testModuleName)
     local obj = {
         name = testModuleName,
@@ -23,6 +26,9 @@ function Xist_UnitTest:New(testModuleName)
 end
 
 
+--- Add a named test callback.
+--- @param name string
+--- @param test fun(self)
 function Xist_UnitTest:AddTest(name, test)
     table.insert(self.tests, {
         name = name,
@@ -31,6 +37,41 @@ function Xist_UnitTest:AddTest(name, test)
 end
 
 
+--- Get a list of this class's tests.
+--- @return table[]
 function Xist_UnitTest:GetTests()
     return self.tests
+end
+
+
+--- Produce an exception description `Expected expected == actual'
+--- @param expected any
+--- @param actual any
+--- @return string
+function Xist_UnitTest:ExpectedEqual(expected, actual)
+    local expectedStr = Xist_Util.ValueAsString(expected)
+    local actualStr = Xist_Util.ValueAsString(actual)
+    return 'Expected '.. expectedStr ..' == '.. actualStr
+end
+
+
+--- Produce an exception description `Expected lesser < greater'
+--- @param lesser any
+--- @param greater any
+--- @return string
+function Xist_UnitTest:ExpectedLessThan(lesser, greater)
+    local lesserStr = Xist_Util.ValueAsString(lesser)
+    local greaterStr = Xist_Util.ValueAsString(greater)
+    return 'Expected '.. lesserStr ..' < '.. greaterStr
+end
+
+
+--- Produce an exception description `Expected lesser <= greaterOrEqual'
+--- @param lesser any
+--- @param greaterOrEqual any
+--- @return string
+function Xist_UnitTest:ExpectedLessOrEqual(lesser, greaterOrEqual)
+    local lesserStr = Xist_Util.ValueAsString(lesser)
+    local greaterStr = Xist_Util.ValueAsString(greaterOrEqual)
+    return 'Expected '.. lesserStr ..' <= '.. greaterStr
 end

@@ -91,16 +91,16 @@ local META = {
 
 
 --- Create a new version with explicit number
---- @param major number|nil default 0
---- @param minor number|nil default 0
---- @param patch number|nil default 0
+--- @param major number|string|nil default 0
+--- @param minor number|string|nil default 0
+--- @param patch number|string|nil default 0
 --- @param tag string|nil default nil
 --- @return Xist_Version
 function Xist_Version:NewExplicit(major, minor, patch, tag)
     local obj = {
-        major = major or 0,
-        minor = minor or 0,
-        patch = patch or 0,
+        major = major ~= nil and tonumber(major) or 0,
+        minor = minor ~= nil and tonumber(minor) or 0,
+        patch = patch ~= nil and tonumber(patch) or 0,
         tag = tag, -- possibly nil
     }
     setmetatable(obj, META)
@@ -131,17 +131,17 @@ function Xist_Version:Parse(versionStr, silent)
             WARNING("Malformed version string `".. versionStr .."', no version info")
         end
     else
-        s = strsub(s, j)
+        s = string.sub(s, j)
         _, j, minor = string.find(s, "\.(%d+)")
         DEBUG("Parse version `".. versionStr .."' [2]", {j=j, major=major, minor=minor})
 
         if minor ~= nil then
-            s = strsub(s, j)
+            s = string.sub(s, j)
             _, j, patch = string.find(s, "\.(%d+)")
             DEBUG("Parse version `".. versionStr .."' [3]", {j=j, major=major, minor=minor, patch=patch})
 
             if patch ~= nil then
-                s = strsub(s, j)
+                s = string.sub(s, j)
                 _, j, tag = string.find(s, "\-(.+)")
                 DEBUG("Parse version `".. versionStr .."' [4]", {j=j, major=major, minor=minor, patch=patch, tag=tag})
             end
@@ -152,24 +152,34 @@ end
 
 
 --- Create a new Xist_Version from an unknown source
---- @param version Xist_Version|string|number|nil
+--- @param major Xist_Version|string|number|nil
+--- @param minor string|number|nil
+--- @param patch string|number|nil
+--- @param tag string|nil
 --- @return Xist_Version
-function Xist_Version:New(version)
-    local t = version and type(version) or nil
+function Xist_Version:New(major, minor, patch, tag)
+    local t = major and type(major) or nil
     if t == "number" then
         -- a major version number was specified, nothing else
-        return Xist_Version:NewExplicit(version)
+        return Xist_Version:NewExplicit(major, minor, patch, tag)
     elseif t == "string" then
         -- a string was specified, could be any format
-        return Xist_Version:Parse(version)
+        if minor == nil then
+            -- we were called like :New("1.1.1")
+            return Xist_Version:Parse(major)
+        end
+        -- we were called like :New("1", "2", "3")
+        return Xist_Version:NewExplicit(major, minor, patch, tag)
     elseif t == 'table' then
         -- a table was specified, if it looks like a Xist_Version then copy it
+        -- We were called like :New({major=1, minor=2, patch=3, tag='beta'})
+        local version = major
         if version.major ~= nil and version.minor ~= nil then
             return Xist_Version:NewExplicit(version.major, version.minor, version.patch, version.tag)
         end
         -- throw exception, invalid table specified
         error("Attempt to instantiate a version from a non-version table")
-    elseif version == nil then
+    elseif major == nil then
         -- no version specified, return new empty 0.0.0
         return Xist_Version:NewExplicit()
     end

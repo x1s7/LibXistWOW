@@ -35,6 +35,7 @@ local UnitTestFramework = {
 local UnitTests = {
     'Config',
     'Queue',
+    'Version',
 }
 
 
