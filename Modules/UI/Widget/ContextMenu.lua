@@ -1,19 +1,35 @@
 
-local ModuleName = "Xist_UI_ContextMenu"
+local ModuleName = "Xist_UI_Widget_ContextMenu"
 local ModuleVersion = 1
 
--- If some other addon installed Xist_UI_ContextMenu, don't do it again
+-- If some other addon installed Xist_UI_Widget_ContextMenu, don't do it again
 if not Xist_Module.NeedsUpgrade(ModuleName, ModuleVersion) then return end
 
--- Initialize Xist_UI_ContextMenu
+-- Initialize Xist_UI_Widget_ContextMenu
 local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 
---- @class Xist_UI_ContextMenu
-Xist_UI_ContextMenu = M
+--- @class Xist_UI_Widget_ContextMenu
+Xist_UI_Widget_ContextMenu = M
 
 --protected.DebugEnabled = true
 
 local DEBUG = protected.DEBUG
+
+local inheritance = {Xist_UI_Widget_ContextMenu}
+
+local settings = {
+    parent = 'panel',
+}
+
+local classes = {
+    default = {
+        backdropClass = 'contextMenu',
+        buttonClass = 'contextMenu',
+        fontClass = 'contextMenu',
+        itemPadding = 4,
+        titleFontClass = 'contextMenuTitle',
+    },
+}
 
 
 local function OnContextMenuItemMouseUp(itemFrame, button)
@@ -31,7 +47,7 @@ local function OnContextMenuItemMouseUp(itemFrame, button)
 end
 
 
-function Xist_UI_ContextMenu:OnContextMenuMouseUp(button)
+function Xist_UI_Widget_ContextMenu:OnContextMenuMouseUp(button)
     if button == 'RightButton' then
         local uiScale = UIParent:GetScale()
         local cursorX, cursorY = GetCursorPosition()
@@ -51,18 +67,19 @@ function Xist_UI_ContextMenu:OnContextMenuMouseUp(button)
 end
 
 
-function Xist_UI_ContextMenu:InitializeMenuOptions(options)
-    local widgetClassConf = self:GetWidgetClassConfig()
+function Xist_UI_Widget_ContextMenu:InitializeMenuOptions(options)
+    local widgetConfigCache = self:GetWidgetConfig()
     local items = {}
-    local padding = self:GetWidgetSetting('itemPadding', 10)
+    local padding = widgetConfigCache.itemPadding or 0
     local offset = padding
     local maxWidth = 0
+    local width, height
+
     for i, itemConf in ipairs(options) do
         local itemFrame
-        local width, height
 
         if itemConf.title then
-            itemFrame = Xist_UI:Label(self, widgetClassConf.titleFontClass)
+            itemFrame = Xist_UI:Label(self, widgetConfigCache.titleFontClass)
             itemFrame:SetText(itemConf.title)
         elseif itemConf.text then
             itemFrame = Xist_UI:Button(self)
@@ -108,8 +125,11 @@ function Xist_UI_ContextMenu:InitializeMenuOptions(options)
 end
 
 
-function Xist_UI_ContextMenu:InitializeContextMenuWidget(options)
+function Xist_UI_Widget_ContextMenu:InitializeContextMenuWidget(options)
     self:InitializeMenuOptions(options)
     local menu = self
     self:GetParent():HookScript('OnMouseUp', function(_, button) menu:OnContextMenuMouseUp(button) end)
 end
+
+
+Xist_UI_Config:RegisterWidget('contextMenu', inheritance, settings, classes)

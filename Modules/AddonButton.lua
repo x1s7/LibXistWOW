@@ -129,7 +129,7 @@ end
 --- Note: This is called BEFORE save data is available.
 --- @return Button
 function Xist_AddonButton:CreateButton()
-    local button = Xist_UI:Button(UIParent)
+    local button = Xist_UI:Button(Xist_UI.UIParent)
     button:SetSize(24, 24)
     button:SetText('*')
     return button
@@ -210,9 +210,9 @@ function Xist_AddonButton:StopMovingOrSizing()
     -- remember the new offset from the top/left corner of the screen
     local config = self:GetConfig()
     config.point = "TOPLEFT"
-    config.parent = "UIParent"
+    config.parent = "Xist_UI__UIParent"
     config.relativePoint = "TOPLEFT"
-    config.yOff = 0 - (UIParent:GetHeight() - top)
+    config.yOff = 0 - (Xist_UI__UIParent:GetHeight() - top)
     config.xOff = left
     self.config = config
     -- let's see what the config looks like now

@@ -205,3 +205,10 @@ UnitTest:AddTest('SetKey deep level', function()
     assert(conf:GetKey({'a','b','c','d'}) == 2, "D should be changed")
     assert(conf:GetKey({'a','b','c','e'}) == 1, "E should be unchanged")
 end)
+
+
+UnitTest:AddTest('SetKey new deep level', function()
+    local conf = Xist_Config:New()
+    conf:SetKey({'a','b','c','d'}, 2)
+    assert(conf:GetKey({'a','b','c','d'}) == 2, "D should exist with correct value")
+end)

@@ -27,11 +27,28 @@ function Xist_Util.ToList(...)
 end
 
 
+--- Count how many digits are in an integer.
+--- This only works for integers.  For floating point numbers, the decimal is ignored.
+--- @param n number
+--- @return number
+function Xist_Util.CountDigits(n)
+    n = n - (n % 10)
+    local digits = 1
+    while n > 1 do
+        n = n / 10
+        n = n - (n % 10)
+        digits = digits + 1
+    end
+    return digits
+end
+
+
 --- Join multiple words together using delimiter.
 --- @param words table[]
 --- @param delimiter string
 --- @return string
 function Xist_Util.Join(words, delimiter)
+    delimiter = delimiter or ''
     local str = ""
     for i=1, #words do
         if i > 1 then
@@ -40,19 +57,6 @@ function Xist_Util.Join(words, delimiter)
         str = str .. words[i]
     end
     return str
-end
-
-
---- Split a string at every regexp match.
---- @param str string
---- @param regexp string
---- @return table[] list of strings
-function Xist_Util.Split(str, regexp)
-    local parts = {}
-    for part in str:gmatch(regexp) do
-        table.insert(parts, part)
-    end
-    return parts
 end
 
 
@@ -78,20 +82,24 @@ end
 
 --- Copy a slice of a table.
 --- @param arr table[]
---- @param off number starting offset
---- @param len number length of slice to copy
+--- @param firstIndex number starting offset (1..N)
+--- @param len number|nil length of slice to copy
 --- @return table[]
-function Xist_Util.Slice(arr, off, len)
+function Xist_Util.Slice(arr, firstIndex, len)
     local result = {}
     -- if offset is negative, then it's from the end of the array
-    if off < 0 then off = #arr + off end
+    if firstIndex < 0 then
+        firstIndex = #arr + firstIndex + 1
+    end
     -- if offset is greater than array length, return empty set
-    if off > #arr then return {} end
+    if firstIndex > #arr then return {} end
+    -- if they didn't specify a length, the full length of the array is desired
+    if len == nil then len = #arr end
     -- max length is the length from offset to end of array
-    len = math.min(len, #arr - off + 1)
+    len = math.min(len, #arr - firstIndex + 1)
     -- copy relevant elements
-    for i=off, len do
-        table.insert(result, arr[i])
+    for i= firstIndex, firstIndex+len-1 do
+        result[1+#result] = arr[i]
     end
     return result
 end
@@ -301,6 +309,42 @@ function Xist_Util.DeepCopy(orig)
         copy = orig
     end
     return copy
+end
+
+
+--- Make a shallow copy of a value.
+--- @param orig table the original table
+--- @param path nil|table[] (internal use only)
+--- @return table a copy of orig
+function Xist_Util.CopyInternal(orig, path)
+    local t = type(orig)
+    local copy
+    path = path or {}
+    if #path >= 50 then
+        error('Prevented possible recursion for key '.. Xist_Util.Join(path, '/'))
+    elseif t == 'table' then
+        copy = {}
+        for k, v in next, orig do
+            path[1+#path] = k -- push
+            copy[k] = Xist_Util.CopyInternal(v, path)
+            path[#path] = nil -- pop
+        end
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+
+function Xist_Util.Copy(orig)
+    local success, result = pcall(Xist_Util.CopyInternal, orig)
+    if not success then
+        -- there was an exception trying to copy
+        print('Copy exception, top level='.. Xist_Util.ValueAsString(orig, 1))
+        print('Exception message: '.. result)
+        return nil
+    end
+    return result
 end
 
 

@@ -36,11 +36,18 @@ addon:OnLoad(function(addonRef)
     data.toggle = not data.toggle
 end)
 
+local function testUI()
+    local win = Xist_UI:Window(nil, 'TEST UI Window')
+    win:Show()
+    return true
+end
+
 local contextMenuOptions = {
     {title = addon:GetName(), color = {1, 1, 0}},
     {text = "Debug Log", callback = Xist_LogMessageContainer.Show},
     {text = "Dump SMF Info", callback = Xist_LogMessageContainer.DebugDump},
     {text = "Run Unit Tests", callback = function() Xist_UnitTestFramework:Run(); return true end},
+    {text = "UI/Window", callback = testUI},
 }
 
 local addonButton = Xist_AddonButton:New(addon, contextMenuOptions)

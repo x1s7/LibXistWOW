@@ -55,13 +55,26 @@ end
 
 
 function Xist_UnitTestFramework:OnEndRun()
-    self:Output("")
+    self:Output("--------------------------------------------------")
     self:Output("Xist_UnitTestFramework tests complete")
-    self:Output("")
+    self:Output("--------------------------------------------------")
+
+    local maxTests = 0
+    for i=1, #self.testSummary do
+        local summary = self.testSummary[i]
+        if summary.total > maxTests then
+            maxTests = summary.total
+        end
+    end
+
+    local digits = Xist_Util.CountDigits(maxTests)
 
     for i=1, #self.testSummary do
         local summary = self.testSummary[i]
-        self:Output('  '.. summary.ok ..'/'.. summary.total ..' '.. summary.class.name)
+        local ok = string.format('%'.. digits ..'d', summary.ok)
+        local total = string.format('%'.. digits ..'d', summary.total)
+        local errorIndicator = (summary.ok == summary.total) and '  ' or '**'
+        self:Output('  '.. ok ..' / '.. total ..'  '.. errorIndicator ..'  '.. summary.class.name)
     end
 end
 
@@ -134,10 +147,13 @@ function Xist_UnitTestFramework:Run()
     for _, class in ipairs(framework.testClasses) do
         framework:OnBeginTestClass(class)
         local tests = class:GetTests()
-        for _, testConfig in ipairs(tests) do
-            framework:OnBeginTestClassTest(testConfig)
-            local success, err = pcall(testConfig.test, testConfig)
-            framework:OnEndTestClassTest(testConfig, success, err)
+        for _, unitTest in ipairs(tests) do
+            framework:OnBeginTestClassTest(unitTest)
+            local success, err = class:PrepareTest()
+            if success then
+                success, err = pcall(unitTest.test, unitTest)
+            end
+            framework:OnEndTestClassTest(unitTest, success, err)
         end
         framework:OnEndTestClass(class)
     end

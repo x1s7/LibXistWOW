@@ -83,7 +83,7 @@ end
 --- @return Xist_EventHandler
 function Xist_EventHandler:NewSliderHandler()
     local obj = self:New()
-    obj.ident = 'Xist_UI_Slider'
+    obj.ident = 'Xist_UI_Widget_Slider'
     obj.KnownEvents = protected.SLIDER_SPECIFIC_EVENTS
     obj.isGlobal = false
     return obj

@@ -16,10 +16,18 @@ Xist_Config.DELETE = {'SPECIFIC_TABLE_ID__MEANS__DELETE_THIS_CONFIG_KEY'}
 
 
 function Xist_Config:New(config, parent)
+    if config then
+        -- if config is a Xist_Config then resolve its data immediately
+        if type(config.GetConfig) == 'function' then
+            config = config:GetConfig()
+        else -- otherwise make a deep copy so we can modify the config in place
+            config = Xist_Util.DeepCopy(config)
+        end
+    end
     local obj = {
         version = 1,
         parent = parent, -- possibly nil
-        config = config and Xist_Util.DeepCopy(config) or nil,
+        config = config, -- possibly nil
     }
     setmetatable(obj, self)
     self.__index = self
@@ -157,7 +165,7 @@ function Xist_Config:Resolve()
             table.insert(self.versionResolution, config.version)
             if i == 1 then
                 -- this is the oldest ancestor, this is the base config
-                result = Xist_Util.DeepCopy(config.config)
+                result = Xist_Util.Copy(config.config)
             else
                 -- this is 1 generation younger, apply its overrides
                 self:ApplyNestedOverrides(result, config.config)

@@ -9,27 +9,33 @@
 
     <!-- Core Modules -->
     <Script file="Modules\Config.lua"/>
+    <Script file="Modules\Config\FrameEnvironment.lua"/>
+    <Script file="Modules\Config\Namespace.lua"/>
+    <Script file="Modules\Config\UI.lua"/>
     <Script file="Modules\EventHandler.lua"/>
     <Script file="Modules\Queue.lua"/>
     <Script file="Modules\Version.lua"/>
 
     <!-- UI Modules -->
-    <Script file="Modules\UI\Button.lua"/>
-    <Script file="Modules\UI\Common.lua"/>
-    <Script file="Modules\UI\ContextMenu.lua"/>
-    <Script file="Modules\UI\Dialog.lua"/>
-    <Script file="Modules\UI\FauxScrollFrame.lua"/>
-    <Script file="Modules\UI\Font.lua"/>
-    <Script file="Modules\UI\FontString.lua"/>
-    <Script file="Modules\UI\Frame.lua"/>
-    <Script file="Modules\UI\Label.lua"/>
-    <Script file="Modules\UI\MessageFrame.lua"/>
-    <Script file="Modules\UI\ScrollFrame.lua"/>
-    <Script file="Modules\UI\ScrollingMessageFrame.lua"/>
-    <Script file="Modules\UI\Slider.lua"/>
-    <Script file="Modules\UI\Window.lua"/>
-
-    <!-- UI Wrapper (depends on above modules) -->
+    <Script file="Modules\UI\Config.lua"/>
+    <Script file="Modules\UI\Widget.lua"/>
+    <!-- UI Widgets -->
+    <Script file="Modules\UI\Widget\Backdrop.lua"/>
+    <Script file="Modules\UI\Widget\Button.lua"/>
+    <Script file="Modules\UI\Widget\ContextMenu.lua"/>
+    <Script file="Modules\UI\Widget\Dialog.lua"/>
+    <Script file="Modules\UI\Widget\Font.lua"/>
+    <Script file="Modules\UI\Widget\FontString.lua"/>
+    <Script file="Modules\UI\Widget\Frame.lua"/>
+    <Script file="Modules\UI\Widget\Label.lua"/>
+    <Script file="Modules\UI\Widget\MessageFrame.lua"/>
+    <Script file="Modules\UI\Widget\Panel.lua"/>
+    <Script file="Modules\UI\Widget\ScrollFrame.lua"/>
+    <Script file="Modules\UI\Widget\ScrollingMessageFrame.lua"/>
+    <Script file="Modules\UI\Widget\Slider.lua"/>
+    <Script file="Modules\UI\Widget\Texture.lua"/>
+    <Script file="Modules\UI\Widget\Window.lua"/>
+    <!-- UI Wrapper (depends on above widgets) -->
     <Script file="Modules\UI.lua"/>
 
     <!-- depends on Modules\UI.lua -->
@@ -49,9 +55,11 @@
     <!-- Unit Tests -->
     <Script file="Modules\UnitTestFramework.lua"/>
     <Script file="Modules\UnitTest.lua"/>
-    <Script file="Tests\Config.lua"/>
-    <Script file="Tests\Queue.lua"/>
-    <Script file="Tests\Version.lua"/>
+    <Script file="Tests\Core\Util.lua"/>
+    <Script file="Tests\Modules\Config.lua"/>
+    <Script file="Tests\Modules\Config\Namespace.lua"/>
+    <Script file="Tests\Modules\Queue.lua"/>
+    <Script file="Tests\Modules\Version.lua"/>
 
     <!-- self addon -->
     <Script file="LibXistWOW.lua"/>

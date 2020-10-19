@@ -19,6 +19,7 @@ function Xist_UnitTest:New(testModuleName)
     local obj = {
         name = testModuleName,
         tests = {},
+        sandbox = {},
     }
     setmetatable(obj, self)
     self.__index = self
@@ -44,6 +45,25 @@ function Xist_UnitTest:GetTests()
 end
 
 
+function Xist_UnitTest:OnBeforeTest(callback)
+    self.onBeforeTestHandler = callback
+end
+
+
+function Xist_UnitTest:PrepareTest()
+    self.sandbox = {}
+    if self.onBeforeTestHandler then
+        return pcall(self.onBeforeTestHandler, self)
+    end
+    return true
+end
+
+
+function Xist_UnitTest:StringValuesAreEqual(first, second)
+    return Xist_Util.ValueAsString(first) == Xist_Util.ValueAsString(second)
+end
+
+
 --- Produce an exception description `Expected expected == actual'
 --- @param expected any
 --- @param actual any
@@ -52,6 +72,24 @@ function Xist_UnitTest:ExpectedEqual(expected, actual)
     local expectedStr = Xist_Util.ValueAsString(expected)
     local actualStr = Xist_Util.ValueAsString(actual)
     return 'Expected '.. expectedStr ..' == '.. actualStr
+end
+
+
+--- Produce an exception description `Expected true == actual'
+--- @param actual any
+--- @return string
+function Xist_UnitTest:ExpectedTrue(actual)
+    local actualStr = Xist_Util.ValueAsString(actual)
+    return 'Expected true == '.. actualStr
+end
+
+
+--- Produce an exception description `Expected false == actual'
+--- @param actual any
+--- @return string
+function Xist_UnitTest:ExpectedFalse(actual)
+    local actualStr = Xist_Util.ValueAsString(actual)
+    return 'Expected false == '.. actualStr
 end
 
 
@@ -74,4 +112,13 @@ function Xist_UnitTest:ExpectedLessOrEqual(lesser, greaterOrEqual)
     local lesserStr = Xist_Util.ValueAsString(lesser)
     local greaterStr = Xist_Util.ValueAsString(greaterOrEqual)
     return 'Expected '.. lesserStr ..' <= '.. greaterStr
+end
+
+
+--- Produce an exception description `Expected nil == actual'
+--- @param actual any
+--- @return string
+function Xist_UnitTest:ExpectedNil(actual)
+    local actualStr = Xist_Util.ValueAsString(actual)
+    return 'Expected nil == '.. actualStr
 end

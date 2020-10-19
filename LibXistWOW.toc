@@ -2,6 +2,6 @@
 ## Title: LibXistWOW
 ## SavedVariables: XISTDATA__LibXistWOW
 ## Author: xist@xist.gg
-## Version: 0.0.5
+## Version: 0.1.0
 
 LibXistWOW.xml

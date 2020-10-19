@@ -14,6 +14,7 @@ local CoreFiles = {
 
 local CoreModules = {
     'Config',
+    'Config/Namespace',
     'EventHandler',
     'Version',
 }
@@ -33,20 +34,26 @@ local UnitTestFramework = {
 }
 
 local UnitTests = {
-    'Config',
-    'Queue',
-    'Version',
+    'Core/Util',
+    'Modules/Config',
+    'Modules/Config/Namespace',
+    'Modules/Queue',
+    'Modules/Version',
 }
 
 
 local BaseDirectory = arg[1] or error('Usage: RunTests.lua /path/to/base/dir')
+local specificTest = arg[2] -- possibly nil
+
+local function RequireFile(directory, file)
+    local filename = BaseDirectory ..'/'.. directory ..'/'.. file ..'.lua'
+    local include = assert(loadfile(filename))
+    include()
+end
 
 local function RequireFiles(directory, files)
-    local filename
     for i = 1, #files do
-        filename = BaseDirectory ..'/'.. directory ..'/'.. files[i] ..'.lua'
-        local f = assert(loadfile(filename))
-        f()
+        RequireFile(directory, files[i])
     end
 end
 
@@ -56,6 +63,11 @@ RequireFiles('Core', CoreFiles)
 RequireFiles('Modules', CoreModules)
 RequireFiles('Modules', Modules)
 RequireFiles('Modules', UnitTestFramework)
-RequireFiles('Tests', UnitTests)
+
+if specificTest then
+    RequireFile('Tests', specificTest)
+else
+    RequireFiles('Tests', UnitTests)
+end
 
 Xist_UnitTestFramework:Run()

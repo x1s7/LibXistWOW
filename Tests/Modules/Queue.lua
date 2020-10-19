@@ -12,20 +12,10 @@ local UnitTest, protected = Xist_Module.Install(ModuleName, ModuleVersion, Xist_
 Xist_UnitTestFramework:AddClass(UnitTest)
 
 
-
 local function AllocateN(q, n)
     for _=1, n do
         q:Allocate()
     end
-end
-
-
-local function IterateCount(q)
-    local i = 0
-    for _ in q:Iterate() do
-        i = i + 1
-    end
-    return i
 end
 
 
@@ -215,6 +205,19 @@ UnitTest:AddTest('Non-sequential Get Previous/Next chaining', function()
     local n = 2
     local q = Xist_Queue:New(n)
     AllocateN(q, n + 1) -- allocate 3 so it's non-sequential
+    assert(q:GetPreviousItem(1) == nil, "There should be no item before the first")
+    assert(q:GetNextItem(1) ~= nil, "There should be an item after the first")
+    assert(q:GetNextItem(1).index == 2, "The second item index should be 2")
+    assert(q:GetPreviousItem(2) ~= nil, "The item before 2 should not be nil")
+    assert(q:GetPreviousItem(2).index == 1, "The item index before 2 should be 1")
+    assert(q:GetNextItem(2) == nil, "There should be no item after the last")
+end)
+
+
+UnitTest:AddTest('Non-sequential Get Previous/Next chaining 2', function()
+    local n = 2
+    local q = Xist_Queue:New(n)
+    AllocateN(q, n * 2) -- use each slot exactly twice
     assert(q:GetPreviousItem(1) == nil, "There should be no item before the first")
     assert(q:GetNextItem(1) ~= nil, "There should be an item after the first")
     assert(q:GetNextItem(1).index == 2, "The second item index should be 2")

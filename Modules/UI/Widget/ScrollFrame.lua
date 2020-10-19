@@ -1,15 +1,15 @@
 
-local ModuleName = "Xist_UI_ScrollFrame"
+local ModuleName = "Xist_UI_Widget_ScrollFrame"
 local ModuleVersion = 1
 
--- If some other addon installed Xist_UI_ScrollFrame, don't do it again
+-- If some other addon installed Xist_UI_Widget_ScrollFrame, don't do it again
 if not Xist_Module.NeedsUpgrade(ModuleName, ModuleVersion) then return end
 
--- Initialize Xist_UI_ScrollFrame
+-- Initialize Xist_UI_Widget_ScrollFrame
 local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 
---- @class Xist_UI_ScrollFrame
-Xist_UI_ScrollFrame = M
+--- @class Xist_UI_Widget_ScrollFrame
+Xist_UI_Widget_ScrollFrame = M
 
 --protected.DebugEnabled = true
 
@@ -17,8 +17,25 @@ local DEBUG = protected.DEBUG
 local MESSAGE = protected.MESSAGE
 
 
-function Xist_UI_ScrollFrame:InitializeScrollFrameWidget(scrollChild)
-    local classConf = self:GetWidgetClassConfig()
+local inheritance = {Xist_UI_Widget_ScrollFrame}
+
+local settings = {
+    parent = 'frame',
+}
+
+local classes = {
+    default = {
+        topPadding = 0,
+        leftPadding = 0,
+        bottomPadding = 0,
+        rightPadding = 0,
+        defaultLineHeight = 12,
+    },
+}
+
+
+function Xist_UI_Widget_ScrollFrame:InitializeScrollFrameWidget(scrollChild)
+    local classConf = self:GetWidgetConfig()
 
     local parent = self:GetParent()
     local topOffset = parent.contentOffset or classConf.topPadding or 0
@@ -54,7 +71,7 @@ function Xist_UI_ScrollFrame:InitializeScrollFrameWidget(scrollChild)
 end
 
 
-function Xist_UI_ScrollFrame:OnScrollEvent(value, delta)
+function Xist_UI_Widget_ScrollFrame:OnScrollEvent(value, delta)
     local max = self.slider:GetMaxValue()
 
     if protected.DebugEnabled then
@@ -68,14 +85,16 @@ function Xist_UI_ScrollFrame:OnScrollEvent(value, delta)
 end
 
 
-function Xist_UI_ScrollFrame:SetScrollChild(child)
+function Xist_UI_Widget_ScrollFrame:SetScrollChild(child)
     self:_SetScrollChild(child)
     self.scrollChild = child
     child:SetParent(self)
+    -- the child must NOT be clamped to screen, it's possible that portions of it will be WAY off screen
+    child:SetClampedToScreen(false)
 end
 
 
-function Xist_UI_ScrollFrame:OnMouseWheel(direction)
+function Xist_UI_Widget_ScrollFrame:OnMouseWheel(direction)
     local slider = self.slider
     local value = slider:GetValue() + (-direction * slider:GetValueStep())
 
@@ -90,7 +109,7 @@ end
 
 
 
-function Xist_UI_ScrollFrame:Redraw()
+function Xist_UI_Widget_ScrollFrame:Redraw()
     local innerHeight = self.scrollChild:GetTotalHeight()
     local visibleHeight = self:GetHeight()
     local obscuredHeight = math.max(0, innerHeight - visibleHeight)
@@ -103,7 +122,7 @@ function Xist_UI_ScrollFrame:Redraw()
 end
 
 
-function Xist_UI_ScrollFrame:DebugDump()
+function Xist_UI_Widget_ScrollFrame:DebugDump()
     self.slider:SetMinMaxValues(0, 1)
 
     local m1 = {
@@ -122,3 +141,6 @@ function Xist_UI_ScrollFrame:DebugDump()
     -- "show me info" button, so SHOW it, debugging enabled or not.
     MESSAGE('ScrollFrame', m1, m2)
 end
+
+
+Xist_UI_Config:RegisterWidget('scrollFrame', inheritance, settings, classes)

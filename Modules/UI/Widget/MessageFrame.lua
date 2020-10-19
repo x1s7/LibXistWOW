@@ -1,15 +1,15 @@
 
-local ModuleName = "Xist_UI_MessageFrame"
+local ModuleName = "Xist_UI_Widget_MessageFrame"
 local ModuleVersion = 1
 
--- If some other addon installed Xist_UI_MessageFrame, don't do it again
+-- If some other addon installed Xist_UI_Widget_MessageFrame, don't do it again
 if not Xist_Module.NeedsUpgrade(ModuleName, ModuleVersion) then return end
 
--- Initialize Xist_UI_MessageFrame
+-- Initialize Xist_UI_Widget_MessageFrame
 local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 
---- @class Xist_UI_MessageFrame
-Xist_UI_MessageFrame = M
+--- @class Xist_UI_Widget_MessageFrame
+Xist_UI_Widget_MessageFrame = M
 
 --protected.DebugEnabled = true
 
@@ -17,8 +17,25 @@ local DEBUG = protected.DEBUG
 local MESSAGE = protected.MESSAGE
 
 
-function Xist_UI_MessageFrame:InitializeMessageFrameWidget()
-    local classConf = self:GetWidgetClassConfig()
+local inheritance = {Xist_UI_Widget_MessageFrame}
+
+local settings = {
+    parent = 'panel',
+}
+
+local classes = {
+    default = {
+        backdropClass = 'transparent',
+        fontClass = 'messages',
+        linePadding = 4,
+        lineSpacing = 2,
+        maxLines = 50,
+    },
+}
+
+
+function Xist_UI_Widget_MessageFrame:InitializeMessageFrameWidget()
+    local classConf = self:GetWidgetConfig()
     local font = self:GetWidgetFontObject()
 
     self.messageQueue = Xist_Queue:New(classConf.maxLines or 10)
@@ -32,7 +49,7 @@ end
 --- Get the height of a single line of text.
 --- The returned value includes any spacing between lines.
 --- @return number
-function Xist_UI_MessageFrame:GetLineHeight()
+function Xist_UI_Widget_MessageFrame:GetLineHeight()
     return self.lineSpacing + self.fontHeight
 end
 
@@ -41,7 +58,7 @@ end
 --- Once we change the parent frame we will also adjust the width/height of this MessageFrame
 --- to fill up the parent, and anchor this MessageFrame to the bottom of the parent frame.
 --- @param parent Frame
-function Xist_UI_MessageFrame:SetParent(parent)
+function Xist_UI_Widget_MessageFrame:SetParent(parent)
     self:_SetParent(parent)
     self:SetWidth(parent:GetWidth())
     self:SetHeight(parent:GetHeight())
@@ -52,21 +69,21 @@ end
 
 --- Get the total height of the MessageFrame.
 --- @return number
-function Xist_UI_MessageFrame:GetTotalHeight()
+function Xist_UI_Widget_MessageFrame:GetTotalHeight()
     return self.totalHeight
 end
 
 
 --- Get the maximum number of messages kept in memory.
 --- @return number
-function Xist_UI_MessageFrame:GetMaxMessages()
+function Xist_UI_Widget_MessageFrame:GetMaxMessages()
     return self.messageQueue:GetMaxLength()
 end
 
 
 --- Set the maximum number of messages to store in memory.
 --- @param limit number
-function Xist_UI_MessageFrame:SetMaxMessages(limit)
+function Xist_UI_Widget_MessageFrame:SetMaxMessages(limit)
     self.messageQueue:SetMaxLength(limit)
 end
 
@@ -75,7 +92,7 @@ end
 --- This uses a Xist_Queue to ensure that we don't allocate infinite numbers of message data,
 --- and instead we keep memory usage to a minimum.
 --- @return table
-function Xist_UI_MessageFrame:AllocateMessageData()
+function Xist_UI_Widget_MessageFrame:AllocateMessageData()
     -- create new font string if needed, else reuse existing one
     local frame = self
     return self.messageQueue:Allocate(function(item, index)
@@ -83,7 +100,7 @@ function Xist_UI_MessageFrame:AllocateMessageData()
             -- this spot in the queue is currently empty.
             -- Allocate a new FontString widget.
 
-            local classConf = frame:GetWidgetClassConfig()
+            local classConf = frame:GetWidgetConfig()
             local fontClass = classConf.fontClass or frame.widgetClass or 'default'
             item = {
                 fontString = Xist_UI:FontString(frame, fontClass),
@@ -105,7 +122,7 @@ end
 --- Add a message to the frame.
 --- If/when you add more than the max number of messages, old messages are "forgotten" from the display.
 --- @param text string The text of the message
-function Xist_UI_MessageFrame:AddMessage(text)
+function Xist_UI_Widget_MessageFrame:AddMessage(text)
     local messageData = self:AllocateMessageData()
     local fontString = messageData.fontString
 
@@ -142,10 +159,9 @@ function Xist_UI_MessageFrame:AddMessage(text)
     -- If the queue contains more than 1 element, then the fontString that comes
     -- right before this one needs to be re-anchored onto this fontString.
 
-    if self.messageQueue:GetLength() > 1 then
-        local lastItem = self.messageQueue:GetPreviousItem(messageData.index)
-        local lastLabel = lastItem.fontString
-        lastLabel:SetPoint('BOTTOMLEFT', fontString, 'TOPLEFT', 0, self.lineSpacing)
+    local lastItem = self.messageQueue:GetPreviousItem(messageData.index)
+    if lastItem then
+        lastItem.fontString:SetPoint('BOTTOMLEFT', fontString, 'TOPLEFT', 0, self.lineSpacing)
     end
 
     -- We cannot use DEBUG() here since debug messages go into a custom MessageFrame,
@@ -160,7 +176,7 @@ end
 
 --- Dump debug info.
 --- This isn't ordinarily useful you're trying to debug scrolling.
-function Xist_UI_MessageFrame:DebugDump()
+function Xist_UI_Widget_MessageFrame:DebugDump()
     local m1 = {
         nMsgs = self.messageQueue:GetLength(),
         tHeight = self.totalHeight,
@@ -177,3 +193,6 @@ function Xist_UI_MessageFrame:DebugDump()
     MESSAGE('MF', m1)
     MESSAGE('Messages', unpack(m2))
 end
+
+
+Xist_UI_Config:RegisterWidget('messageFrame', inheritance, settings, classes)

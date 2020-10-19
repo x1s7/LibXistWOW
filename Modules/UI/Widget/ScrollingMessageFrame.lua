@@ -1,22 +1,33 @@
 
-local ModuleName = "Xist_UI_ScrollingMessageFrame"
+local ModuleName = "Xist_UI_Widget_ScrollingMessageFrame"
 local ModuleVersion = 1
 
--- If some other addon installed Xist_UI_ScrollingMessageFrame, don't do it again
+-- If some other addon installed Xist_UI_Widget_ScrollingMessageFrame, don't do it again
 if not Xist_Module.NeedsUpgrade(ModuleName, ModuleVersion) then return end
 
--- Initialize Xist_UI_ScrollingMessageFrame
+-- Initialize Xist_UI_Widget_ScrollingMessageFrame
 local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 
---- @class Xist_UI_ScrollingMessageFrame
-Xist_UI_ScrollingMessageFrame = M
+--- @class Xist_UI_Widget_ScrollingMessageFrame
+Xist_UI_Widget_ScrollingMessageFrame = M
 
-protected.DebugEnabled = true
+--protected.DebugEnabled = true
 
 local DEBUG = protected.DEBUG
 
 
-function Xist_UI_ScrollingMessageFrame:InitializeScrollingMessageFrameWidget()
+local inheritance = {Xist_UI_Widget_ScrollingMessageFrame}
+
+local settings = {
+    parent = 'frame',
+    strata = 'DIALOG',
+}
+
+local classes = {
+}
+
+
+function Xist_UI_Widget_ScrollingMessageFrame:InitializeScrollingMessageFrameWidget()
     self.isScrollingMessageFrameWidget = true
 
     local parent = self:GetParent()
@@ -35,18 +46,18 @@ function Xist_UI_ScrollingMessageFrame:InitializeScrollingMessageFrameWidget()
 end
 
 
-function Xist_UI_ScrollingMessageFrame:SetMaxMessages(limit)
+function Xist_UI_Widget_ScrollingMessageFrame:SetMaxMessages(limit)
     self.messageFrame:SetMaxMessages(limit)
 end
 
 
-function Xist_UI_ScrollingMessageFrame:DebugDump()
+function Xist_UI_Widget_ScrollingMessageFrame:DebugDump()
     self.messageFrame:DebugDump()
     self.scrollFrame:DebugDump()
 end
 
 
-function Xist_UI_ScrollingMessageFrame:AddMessage(text)
+function Xist_UI_Widget_ScrollingMessageFrame:AddMessage(text)
     local wasScrolledToEnd = self.scrollFrame.slider:IsScrolledToEnd()
 
     self.messageFrame:AddMessage(text)
@@ -56,3 +67,6 @@ function Xist_UI_ScrollingMessageFrame:AddMessage(text)
         self.scrollFrame.slider:ScrollToEnd()
     end
 end
+
+
+Xist_UI_Config:RegisterWidget('scrollingMessageFrame', inheritance, settings, classes)
