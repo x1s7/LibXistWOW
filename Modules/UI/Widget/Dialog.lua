@@ -20,27 +20,28 @@ local settings = {
 
 local classes = {
     default = {
-        buttonPadding = 4,
+        padding = 2,
+        spacing = 2,
     },
 }
 
 
 local function InitializeDialogWidget(widget)
-    local classConf = widget:GetWidgetConfig()
-    local buttonPadding = classConf.buttonPadding or 0
+    local env = widget:GetWidgetEnvironment()
+    local spacing = env:GetSpacing()
 
     Xist_UI:MakeWidgetDraggable(widget)
 
     local closeButton = Xist_UI:Button(widget)
     closeButton:SetText('X')
-    closeButton:SetSize(16, 16)
-    closeButton:SetPoint('TOPRIGHT', -buttonPadding, -buttonPadding)
+    --closeButton:SetFixedSize(16, 16)
+    closeButton:SetPoint('TOPRIGHT', -spacing.right, -spacing.top)
     closeButton:HookScript('OnMouseUp', function() widget:Hide() end)
 
     widget.closeButtonWidget = closeButton
 
     -- let other code know where they can safely place other widgets to not cover up the close button
-    widget.contentOffset = closeButton:GetHeight() + buttonPadding + buttonPadding
+    widget.contentOffset = closeButton:GetHeight() + spacing.top + spacing.bottom
 end
 
 

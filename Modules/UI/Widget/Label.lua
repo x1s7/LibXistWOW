@@ -33,19 +33,27 @@ local classes = {
 local function InitializeLabelWidget(widget, colorCode)
     local fontClass = Xist_UI:GetWidgetClass(widget, 'font')
 
+    widget.fontString = Xist_UI:FontString(widget, fontClass, colorCode)
     widget.widgetColorCode = colorCode
-
-    widget.fontString = Xist_UI:FontString(widget, fontClass, widget.widgetColorCode)
-    widget.fontString:SetPoint('TOPLEFT')
-    widget.fontString:SetPoint('BOTTOMRIGHT')
 end
 
 
 function Xist_UI_Widget_Label:SetText(text)
     self.fontString:SetText(text)
     -- recompute the width/height of the label based on the text
-    self:SetWidth(self.fontString:GetWidth())
-    self:SetHeight(self.fontString:GetHeight())
+    local env = self:GetWidgetEnvironment()
+    local padding = env:GetPadding()
+
+    -- clear points so fontString will tell us the real text sizes
+    self.fontString:ClearAllPoints()
+
+    -- assign label size with padding
+    self:SetWidth(self.fontString:GetWidth() + padding.left + padding.right)
+    self:SetHeight(self.fontString:GetHeight() + padding.top + padding.bottom)
+
+    -- re-anchor font string to preserve padding
+    self.fontString:SetPoint('TOPLEFT', padding.left, -padding.top)
+    self.fontString:SetPoint('BOTTOMRIGHT', -padding.right, padding.bottom)
 end
 
 

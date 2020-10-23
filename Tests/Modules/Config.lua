@@ -212,3 +212,12 @@ UnitTest:AddTest('SetKey new deep level', function()
     conf:SetKey({'a','b','c','d'}, 2)
     assert(conf:GetKey({'a','b','c','d'}) == 2, "D should exist with correct value")
 end)
+
+
+UnitTest:AddTest('ApplyNestedOverrides replace simple value with table', function()
+    local parent = {a = 1}
+    local child = {a = {b = 1}}
+    Xist_Config:ApplyNestedOverrides(parent, child)
+    assert(parent.a ~= nil)
+    assert(type(parent.a) == 'table', 'Expect parent.a to be a table after override')
+end)

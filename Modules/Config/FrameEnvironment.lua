@@ -19,6 +19,7 @@ local DEBUG = protected.DEBUG
 function Xist_Config_FrameEnvironment:New(frame)
     local obj = {
         frame = frame,
+        runtimeCache = {},
     }
     setmetatable(obj, self)
     self.__index = self
@@ -59,7 +60,7 @@ function Xist_Config_FrameEnvironment:GetFrameIdentification(parentFrameIdentifi
         -- this frame has no name, add a description of what it is (type:class)
         frameId = frameId .. (self.frame.widgetType or 'UNKNOWN')
         local class = self.frame.widgetClass or 'UNKNOWN'
-        frameId = frameId ..':'.. class
+        frameId = frameId ..'.'.. class
     end
     return frameId
 end
@@ -89,15 +90,70 @@ function Xist_Config_FrameEnvironment:GetEnv(name, default)
 end
 
 
-function Xist_Config_FrameEnvironment:GetPadding()
-    local padding = self:GetEnv('padding')
-    if not padding then
-        padding = {
-            top = self:GetEnv('topPadding', 0),
-            left = self:GetEnv('leftPadding', 0),
-            bottom = self:GetEnv('bottomPadding', 0),
-            right = self:GetEnv('rightPadding', 0),
-        }
+local spaceEquivs = {
+    top = 'v',
+    bottom = 'v',
+    vbetween = 'v',
+    left = 'h',
+    right = 'h',
+    hbetween = 'h',
+}
+
+local spaceKeys = {}
+for key,_ in pairs(spaceEquivs) do
+    spaceKeys[1+#spaceKeys] = key
+end
+
+
+local function buildSpaceConfig(env, envName)
+    local spacing = env.runtimeCache[envName]
+    if not spacing then
+        spacing = env:GetEnv(envName)
+        local orig = spacing
+        if type(spacing) == 'number' then
+            -- They've defined spacing as a number, so use this value for all of the
+            -- spacing keys equally.
+            local tmp = {}
+            for i=1, #spaceKeys do
+                tmp[spaceKeys[i]] = spacing
+            end
+            spacing = tmp
+        else
+            -- If they've defined spacing as anything other than a number or a table, then
+            -- discard it and reset it as an empty table.
+            if type(spacing) ~= 'table' then
+                spacing = {}
+            end
+            -- Assign each value of the spacing keys.
+            -- If the user defined the key explicitly, use that value.
+            -- Otherwise look for the spaceEquivs value
+            --   ('v' sets 'top', 'bottom', 'vbetween')
+            --   ('h' sets 'left', 'right', 'hbetween')
+            -- Default 0 if no configuration is found.
+            local key, value
+            for i=1, #spaceKeys do
+                key = spaceKeys[i]
+                if spacing[key] == nil then
+                    value = spacing[spaceEquivs[key]]
+                    spacing[key] = value or 0
+                end
+            end
+        end
+        -- Cache this runtime computed fully-formed spacing config
+        env.runtimeCache[envName] = spacing
+        DEBUG('Environment', envName, 'COMPUTED', env:GetEnv('frameIdentification'), spacing, 'orig=', orig)
+    else
+        DEBUG('Environment', envName, 'cached', env:GetEnv('frameIdentification'), spacing)
     end
-    return padding
+    return Xist_Util.Copy(spacing)
+end
+
+
+function Xist_Config_FrameEnvironment:GetPadding()
+    return buildSpaceConfig(self, 'padding')
+end
+
+
+function Xist_Config_FrameEnvironment:GetSpacing()
+    return buildSpaceConfig(self, 'spacing')
 end

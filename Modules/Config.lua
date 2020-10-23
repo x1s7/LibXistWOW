@@ -58,6 +58,10 @@ function Xist_Config:ApplyNestedOverrides(config, overrides)
                 -- override value is a non-delete table, and config[k] is already a table.
                 -- override nested table values.
                 self:ApplyNestedOverrides(config[k], v)
+            else
+                -- override value is a non-delete table and config[k] is something other than a table.
+                -- replace config[k] with the table value.
+                config[k] = v
             end
         else
             -- value is not a table, so assign it outright

@@ -14,6 +14,7 @@ Xist_UI_Widget_Button = M
 protected.DebugEnabled = true
 
 local DEBUG = protected.DEBUG
+local DEBUG_CAT = protected.DEBUG_CAT
 
 
 local inheritance = {Xist_UI_Widget_Button}
@@ -28,14 +29,20 @@ local classes = {
         fontClass = 'button',
         highlightTextureClass = 'buttonHighlight',
         normalTextureClass = 'buttonNormal',
+        padding = 2,
         pushedTextureClass = 'buttonPushed',
         registerClicks = {'LeftButton', 'RightButton'},
     },
     addonSettingsButton = {
+        padding = 4,
     },
     contextMenu = {
         fontClass = 'contextMenu',
         normalTextureClass = 'buttonTransparent',
+        padding = {
+            h = 6,
+            v = 2,
+        },
     },
     tableHeaderCell = {
         fontClass = 'tableHeaderCell',
@@ -78,6 +85,24 @@ local function InitializeButtonWidget(widget)
 end
 
 
+function Xist_UI_Widget_Button:SetFixedSize(width, height)
+    self.widgetFixedSize = true
+    self:SetSize(width, height)
+end
+
+
+function Xist_UI_Widget_Button:SetText(text)
+    self:_SetText(text)
+    if not self.widgetFixedSize then
+        local env = self:GetWidgetEnvironment()
+        local padding = env:GetPadding()
+        DEBUG_CAT('SetText', {text=text}, 'padding=', padding)
+        self:SetWidth(padding.left + self:GetTextWidth() + padding.right)
+        self:SetHeight(padding.top + self:GetTextHeight() + padding.bottom)
+    end
+end
+
+
 function Xist_UI_Widget_Button:GetTextHeight()
     return math.floor(self:_GetTextHeight() + 0.5)
 end
@@ -89,12 +114,12 @@ end
 
 
 function Xist_UI_Widget_Button:HandleOnMouseDown(button)
-    DEBUG('Button:HandleOnMouseDown', button)
+    --DEBUG('Button:HandleOnMouseDown', button)
 end
 
 
 function Xist_UI_Widget_Button:HandleOnMouseUp(button)
-    DEBUG('Button:HandleOnMouseUp', button)
+    --DEBUG('Button:HandleOnMouseUp', button)
 end
 
 

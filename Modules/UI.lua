@@ -13,12 +13,14 @@ Xist_UI = M
 
 protected.DebugEnabled = true
 
+local VERBOSE_INHERITANCE_DEBUG = false and protected.DebugEnabled
+
 local DEBUG = protected.DEBUG
 local WARNING = protected.WARNING
 
 -- a full screen frame to be the parent of all Xist_UI elements
 -- this way we can easily hide them all in combat, for example
-Xist_UI.UIParent = CreateFrame('Frame', 'Xist_UI__UIParent', UIParent)
+local Xist__UIParent = CreateFrame('Frame', 'Xist__UIParent', UIParent)
 
 
 --- Inherit parent classes into obj.
@@ -37,7 +39,12 @@ local function InheritParentClasses(obj, inheritClasses)
                 -- if obj already has a method of this name, classify it as the super,
                 -- save a reference to it as _methodName
                 if obj[k] and type(obj[k]) == 'function' then
+                    if VERBOSE_INHERITANCE_DEBUG then
+                        DEBUG('InheritParentClasses', obj.widgetType, 'override', k, (obj['_'..k] == nil and '' or 'MULTIPLE_OVERRIDE'))
+                    end
                     obj['_'.. k] = obj[k]
+                elseif VERBOSE_INHERITANCE_DEBUG then
+                    DEBUG('InheritParentClasses', obj.widgetType, 'install', k)
                 end
                 -- install this class method to obj
                 obj[k] = v
@@ -301,7 +308,7 @@ end
 function Xist_UI:CreateWidget(widgetType, frameType, parent, className, config, initArgs)
     widgetType = widgetType or 'frame'
     frameType = frameType or 'Frame'
-    parent = parent or Xist_UI.UIParent
+    parent = parent or Xist__UIParent
     local widget = CreateFrame(frameType, nil, parent)
     return Xist_UI:InitializeWidget(widget, widgetType, className, config, initArgs)
 end
@@ -309,14 +316,14 @@ end
 
 --- @see https://wowwiki.fandom.com/wiki/UIOBJECT_FontString
 function Xist_UI:FontString(parent, className, colorCode)
-    parent = parent or Xist_UI.UIParent
+    parent = parent or Xist__UIParent
     local fontString = parent:CreateFontString()
     return Xist_UI:InitializeWidget(fontString, 'fontString', className, nil, {colorCode})
 end
 
 
 function Xist_UI:Texture(parent, className)
-    parent = parent or Xist_UI.UIParent
+    parent = parent or Xist__UIParent
     local tex = parent:CreateTexture()
     return Xist_UI:InitializeWidget(tex, 'texture', className)
 end
@@ -382,6 +389,6 @@ function Xist_UI:Window(parent, title, className, config)
 end
 
 
-Xist_UI:InitializeWidget(Xist_UI.UIParent, 'frame', 'default')
-Xist_UI.UIParent:SetAllPoints() -- occupy the entire screen
-Xist_UI.UIParent:Show() -- show UI by default
+Xist_UI:InitializeWidget(Xist__UIParent, 'frame', 'default')
+Xist__UIParent:SetAllPoints() -- occupy the entire screen
+Xist__UIParent:Show() -- show UI by default

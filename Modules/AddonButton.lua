@@ -134,9 +134,9 @@ end
 --- Note: This is called BEFORE save data is available.
 --- @return Button
 function Xist_AddonButton:CreateButton()
-    local button = Xist_UI:Button(Xist_UI.UIParent, 'addonSettingsButton')
-    button:SetSize(24, 24)
-    button:SetText('*')
+    local button = Xist_UI:Button(Xist__UIParent, 'addonSettingsButton')
+    button:SetText('O')
+    --button:SetSize(24, 24)
     return button
 end
 
@@ -176,6 +176,14 @@ end
 
 --- Handle the user clicking the AddonButton with the right mouse button.
 --- You MUST derive your own class and implement this method if you want right button support.
+--- @param isPushed boolean TRUE if the button is being held down and has not been released.
+--- @virtual
+Xist_AddonButton.OnLeftClick = protected.NOOP
+
+
+--- Handle the user clicking the AddonButton with the right mouse button.
+--- You MUST derive your own class and implement this method if you want right button support.
+--- @param isPushed boolean TRUE if the button is being held down and has not been released.
 --- @virtual
 Xist_AddonButton.OnRightClick = protected.NOOP
 
@@ -185,7 +193,7 @@ Xist_AddonButton.OnRightClick = protected.NOOP
 --- @param isPushed boolean|nil
 --- @see https://wowwiki.fandom.com/wiki/API_Button_RegisterForClicks
 function Xist_AddonButton:OnClick(clickType, isPushed)
-    self:DEBUG("OnClick", clickType, isPushed)
+    --self:DEBUG("OnClick", clickType, isPushed)
     if clickType == "LeftButton" then
         self:OnLeftClick(isPushed)
         -- any time left button is clicked, make sure the context menu is hidden
@@ -200,6 +208,10 @@ end
 
 function Xist_AddonButton:StartMoving()
     self.button:StartMoving()
+    -- Hide the context menu once we start moving the addon button around
+    if self.menu then
+        self.menu:Hide()
+    end
 end
 
 
@@ -211,9 +223,9 @@ function Xist_AddonButton:StopMovingOrSizing()
     -- remember the new offset from the top/left corner of the screen
     local config = self:GetConfig()
     config.point = "TOPLEFT"
-    config.parent = "Xist_UI__UIParent"
+    config.parent = "Xist__UIParent"
     config.relativePoint = "TOPLEFT"
-    config.yOff = 0 - (Xist_UI__UIParent:GetHeight() - top)
+    config.yOff = 0 - (Xist__UIParent:GetHeight() - top)
     config.xOff = left
     self.config = config
     -- let's see what the config looks like now

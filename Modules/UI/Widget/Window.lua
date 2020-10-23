@@ -21,7 +21,8 @@ local settings = {
 
 local classes = {
     default = {
-        buttonPadding = 4,
+        padding = 2,
+        spacing = 4,
         titleFontClass = 'title',
         titlePadding = 4,
     },
@@ -37,18 +38,17 @@ local function InitializeWindowWidget(widget, title)
 
     local closeButton = widget.closeButtonWidget
 
-    local classConf = widget:GetWidgetConfig()
-    local titlePadding = classConf.titlePadding or 0
-    local titleFontClass = classConf.titleFontClass or 'title'
+    local env = widget:GetWidgetEnvironment()
+    local spacing = env:GetSpacing()
 
-    local titleFont = Xist_UI:FontString(widget, titleFontClass)
+    local titleFont = Xist_UI:FontString(widget, env:GetEnv('titleFontClass'))
     titleFont:SetText(title)
-    titleFont:SetPoint('TOPLEFT', titlePadding, -titlePadding)
-    titleFont:SetPoint('TOPRIGHT', -titlePadding -closeButton:GetWidth() -titlePadding, -titlePadding)
+    titleFont:SetPoint('TOPLEFT', spacing.left, -spacing.top)
+    titleFont:SetPoint('RIGHT', closeButton, 'LEFT', -spacing.hbetween, 0)
 
     -- let other code know where they can safely place other widgets to not cover up the header
     -- self.contentOffset was previously computed by Xist_UI_Widget_Dialog to be the close button height
-    widget.contentOffset = math.max(widget.contentOffset, titleFont:GetHeight() + titlePadding + titlePadding)
+    widget.contentOffset = math.max(widget.contentOffset, titleFont:GetHeight() + spacing.top + spacing.bottom)
 end
 
 

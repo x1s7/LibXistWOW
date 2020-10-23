@@ -11,9 +11,10 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 --- @class Xist_UI_Widget_ContextMenu
 Xist_UI_Widget_ContextMenu = M
 
---protected.DebugEnabled = true
+protected.DebugEnabled = true
 
 local DEBUG = protected.DEBUG
+local DEBUG_CAT = protected.DEBUG_CAT
 
 local inheritance = {Xist_UI_Widget_ContextMenu}
 
@@ -26,7 +27,15 @@ local classes = {
         backdropClass = 'contextMenu',
         buttonClass = 'contextMenu',
         fontClass = 'contextMenu',
-        itemPadding = 4,
+        padding = {
+            v = 2,
+            h = 4,
+        },
+        spacing = {
+            v = 2,
+            h = 4,
+            bottom = 4,
+        },
         titleFontClass = 'contextMenuTitle',
     },
 }
@@ -67,67 +76,77 @@ function Xist_UI_Widget_ContextMenu:OnContextMenuMouseUp(button)
 end
 
 
+function Xist_UI_Widget_ContextMenu:CreateMenuItem(itemConf)
+    local env = self:GetWidgetEnvironment()
+    local itemFrame
+
+    if itemConf.title then
+        itemFrame = Xist_UI:Label(self, env:GetEnv('titleFontClass'))
+        itemFrame:SetText(itemConf.title)
+    elseif itemConf.text then
+        itemFrame = Xist_UI:Button(self)
+        itemFrame:SetText(itemConf.text)
+    else
+        error('Unsupported ContextMenu item config: '.. Xist_Util.Args2StringLiteral(itemConf))
+    end
+
+    itemFrame.menu = self
+    itemFrame.menuItemConf = itemConf
+
+    return itemFrame
+end
+
+
 function Xist_UI_Widget_ContextMenu:InitializeMenuOptions(options)
-    local widgetConfigCache = self:GetWidgetConfig()
+    local env = self:GetWidgetEnvironment()
+    local spacing = env:GetSpacing()
+
+    DEBUG_CAT('InitializeMenuItems >>>>>>>>>>>>>>>>>>>', 'spacing=', spacing)
+
     local items = {}
-    local padding = widgetConfigCache.itemPadding or 0
-    local offset = padding
+    local offset = spacing.top
     local maxWidth = 0
-    local width, height
+    local itemFrame, width, height
 
     for i, itemConf in ipairs(options) do
-        local itemFrame
+        itemFrame = self:CreateMenuItem(itemConf)
 
-        if itemConf.title then
-            itemFrame = Xist_UI:Label(self, widgetConfigCache.titleFontClass)
-            itemFrame:SetText(itemConf.title)
-        elseif itemConf.text then
-            itemFrame = Xist_UI:Button(self)
-            itemFrame:SetText(itemConf.text)
-            -- there is a special way to check the width/height of button text
-            width = itemFrame:GetTextWidth()
-            height = itemFrame:GetTextHeight()
-        else
-            error('Unsupported ContextMenu item config: '.. Xist_Util.Args2StringLiteral(itemConf))
-        end
-
-        width = width or itemFrame:GetWidth()
-        height = height or itemFrame:GetHeight()
-
-        itemFrame.menu = self
-        itemFrame.menuItemConf = itemConf
-
-        itemFrame:HookScript('OnMouseUp', OnContextMenuItemMouseUp)
+        width = itemFrame:GetWidth()
+        height = itemFrame:GetHeight()
 
         itemFrame:ClearAllPoints()
+        itemFrame:SetPoint('TOPLEFT', spacing.left, -offset)
 
-        DEBUG("InitializeMenuItems ["..i.."]", {width=width, height=height})
-
-        itemFrame:SetPoint('TOPLEFT', padding, -offset)
+        itemFrame:EnableMouse(true)
+        itemFrame:HookScript('OnMouseUp', OnContextMenuItemMouseUp)
 
         if width > maxWidth then
             maxWidth = width
         end
 
         -- AFTER checking the width then pin the right side
-        itemFrame:SetPoint('BOTTOMRIGHT', self, 'TOPRIGHT', -padding, -offset-height)
+        itemFrame:SetPoint('BOTTOMRIGHT', self, 'TOPRIGHT', -spacing.right, -offset-height)
 
         items[#items+1] = itemFrame
-        offset = offset + height + padding
+        offset = offset + height + spacing.vbetween
+
+        DEBUG_CAT('InitializeMenuItems ['..i..']', {width=width, height=height, offset=offset})
     end
 
     self.items = items
 
-    width = maxWidth + padding + padding
-    height = offset
+    width = maxWidth + spacing.left + spacing.right
+    height = offset - spacing.vbetween + spacing.bottom
 
     self:SetSize(width, height)
+
+    DEBUG_CAT('InitializeMenuItems <<<<<<<<<<<<<<<<<<<', {width=width, height=height})
 end
 
 
 local function InitializeContextMenuWidget(widget, options)
     widget:InitializeMenuOptions(options)
-    widget:EnableMouse() -- dont let mouse pass thru this frame
+    widget:EnableMouse(true) -- dont let mouse pass thru this frame
     widget:GetParent():HookScript('OnMouseUp', function(_, button) widget:OnContextMenuMouseUp(button) end)
 end
 

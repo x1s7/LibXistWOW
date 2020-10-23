@@ -17,9 +17,9 @@ local function onSlashCommand(text)
     elseif text == "test" then
         Xist_UnitTestFramework:Run()
     elseif text == "ui show" then
-        Xist_UI.UIParent:Show()
+        Xist__UIParent:Show()
     elseif text == "ui hide" then
-        Xist_UI.UIParent:Hide()
+        Xist__UIParent:Hide()
     elseif text == "write save data" then
         addon:WriteSaveData()
     else
