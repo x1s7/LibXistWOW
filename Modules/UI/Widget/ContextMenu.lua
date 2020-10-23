@@ -97,7 +97,7 @@ function Xist_UI_Widget_ContextMenu:InitializeMenuOptions(options)
         itemFrame.menu = self
         itemFrame.menuItemConf = itemConf
 
-        itemFrame:SetScript('OnMouseUp', OnContextMenuItemMouseUp)
+        itemFrame:HookScript('OnMouseUp', OnContextMenuItemMouseUp)
 
         itemFrame:ClearAllPoints()
 
@@ -125,11 +125,11 @@ function Xist_UI_Widget_ContextMenu:InitializeMenuOptions(options)
 end
 
 
-function Xist_UI_Widget_ContextMenu:InitializeContextMenuWidget(options)
-    self:InitializeMenuOptions(options)
-    local menu = self
-    self:GetParent():HookScript('OnMouseUp', function(_, button) menu:OnContextMenuMouseUp(button) end)
+local function InitializeContextMenuWidget(widget, options)
+    widget:InitializeMenuOptions(options)
+    widget:EnableMouse() -- dont let mouse pass thru this frame
+    widget:GetParent():HookScript('OnMouseUp', function(_, button) widget:OnContextMenuMouseUp(button) end)
 end
 
 
-Xist_UI_Config:RegisterWidget('contextMenu', inheritance, settings, classes)
+Xist_UI_Config:RegisterWidget('contextMenu', inheritance, settings, classes, InitializeContextMenuWidget)

@@ -18,25 +18,173 @@ local WARNING = protected.WARNING
 
 -- a full screen frame to be the parent of all Xist_UI elements
 -- this way we can easily hide them all in combat, for example
-local TopLevelFrame = CreateFrame('Frame', 'Xist_UI__UIParent', UIParent)
-
-TopLevelFrame.widgetType = 'frame'
-TopLevelFrame.widgetClass = 'default'
-
-TopLevelFrame:SetPoint('TOPLEFT')
-TopLevelFrame:SetPoint('BOTTOMRIGHT')
-TopLevelFrame:Show()
-
-Xist_UI.UIParent = TopLevelFrame
+Xist_UI.UIParent = CreateFrame('Frame', 'Xist_UI__UIParent', UIParent)
 
 
---- Create a Font object.
---- Read settings from the config to initialize the object.
+--- Inherit parent classes into obj.
+--- @param obj table
+--- @param inheritClasses table[] list of classes
+local function InheritParentClasses(obj, inheritClasses)
+    inheritClasses = inheritClasses or {Xist_UI_Widget}
+
+    local wantCopy
+    -- copy methods from class to obj
+    for _, class in ipairs(inheritClasses) do
+        for k, v in pairs(class) do
+            -- we do NOT want to copy _meta information
+            wantCopy = k ~= '_meta'
+            if wantCopy then
+                -- if obj already has a method of this name, classify it as the super,
+                -- save a reference to it as _methodName
+                if obj[k] and type(obj[k]) == 'function' then
+                    obj['_'.. k] = obj[k]
+                end
+                -- install this class method to obj
+                obj[k] = v
+            end
+        end
+    end
+end
+
+
+--- @param widget Xist_UI_Widget
+--- @return table
+local function GetWidgetSettings(widget)
+    local cc = Xist_Config_Namespace:New(widget.config, 'widgetSettings')
+    local settings = cc:GetClassData(widget.widgetType)
+    if not settings then
+        error('No widget settings defined for widgetType=`'.. widget.widgetType .."'")
+    end
+    return settings
+end
+
+
+--- @param widget Xist_UI_Widget
+--- @return table
+local function GetBackdropConfig(widget)
+    local wcData = widget:GetWidgetConfig()
+    local configNamespace = Xist_Config_Namespace:New(widget.config, 'backdropClasses')
+    return configNamespace:GetClassData(wcData.backdropClass) or {}
+end
+
+
+local function InitializeBackdrop(widget)
+    -- If there is no backdrop config then there is nothing to do
+    local conf = GetBackdropConfig(widget)
+    if not conf.backdrop then return end
+
+    -- first make sure this frame contains the backdrop mixin
+    if not widget.SetBackdrop then
+        Mixin(widget, BackdropTemplateMixin)
+    end
+
+    widget:SetBackdrop(conf.backdrop)
+    --DEBUG('backdrop =', conf.backdrop)
+
+    local c = conf.color
+    if c then
+        widget:SetBackdropColor(c.r, c.g, c.b, c.a)
+        --DEBUG('backdrop color =', c)
+    end
+
+    if (conf.backdrop.edgeSize or 0) > 0 then
+        c = conf.borderColor
+        if c then
+            widget:SetBackdropBorderColor(c.r, c.g, c.b, c.a)
+            --DEBUG('backdrop border color =', c)
+        end
+    end
+end
+
+
+--- Initialize a widget.
+--- @param obj Frame|Font|Texture
+--- @param type string
+--- @param className string
+--- @param config table
+--- @param initArgs table[]
+function Xist_UI:InitializeWidget(obj, type, className, config, initArgs)
+    -- first mark the type of widget this is
+    obj.widgetType = type
+
+    -- Inherit parent classes, if any
+    local inheritance = Xist_UI_Config:GetWidgetInheritance(type)
+    if inheritance then
+        InheritParentClasses(obj, inheritance)
+    end
+
+    -- find out if there is a parent frame attached to this object
+    local parent = obj.GetParent and obj:GetParent() or nil
+    local isParentWidget = parent and parent.widgetType
+    local parentConfigObject = isParentWidget and parent.config or Xist_UI_Config
+
+    -- if config is nil, then this will simply create a pseudo config that inherits
+    -- all the attributes of the parent's config.
+    -- if config is non-nil, then it is a set of overrides to the parent config.
+    obj.config = Xist_Config:New(config, parentConfigObject)
+
+    -- apply widget settings -- AFTER setting obj.widgetType AND obj.config
+    local settings = GetWidgetSettings(obj)
+    obj.widgetSettings = settings
+
+    -- if there is not an overriding className explicit to this widget,
+    -- look in the parent widget to determine what class this widget type
+    -- should default to.
+    obj.widgetClass = className or Xist_UI:GetWidgetClass(obj, type, true)
+
+    -- Save the settings for later reference
+    obj.widgetSettings = settings
+
+    -- TODO these things should not be widget settings, they should be widget CLASS settings
+
+    if settings.width ~= nil then
+        obj:SetWidth(settings.width)
+    end
+
+    if settings.height ~= nil then
+        obj:SetHeight(settings.height)
+    end
+
+    if settings.clampedToScreen == true then
+        obj:SetClampedToScreen(true)
+    end
+
+    if settings.strata ~= nil then
+        obj:SetFrameStrata(settings.strata)
+    end
+
+    if settings.anchors and #settings.anchors then
+        for _, anchor in ipairs(settings.anchors) do
+            obj:SetPoint(unpack(anchor))
+        end
+    end
+
+    if settings.backdrop then
+        InitializeBackdrop(obj)
+    end
+
+    if settings.show == false then
+        obj:Hide()
+    elseif obj.Show then -- show by default, only if the widget supports obj:Show(), which not all do
+        obj:Show()
+    end
+
+    local init = Xist_UI_Config:GetWidgetInitializeMethod(type)
+    if init then
+        init(obj, initArgs and unpack(initArgs))
+    end
+
+    return obj
+end
+
+
+--- Get or Create a Font object with settings defined in the config.
+--- Created objects are cached globally for reuse.
 --- @param config Xist_Config
---- @param class string
---- @param colorCode string
+--- @param class string|nil
+--- @param colorCode string|nil
 --- @return Font
-function Xist_UI:GetFontObject(config, class, colorCode)
+local function GetOrCreateGlobalFontObject(config, class, colorCode)
     class = class or 'default'
     colorCode = colorCode or 'default'
 
@@ -77,17 +225,70 @@ function Xist_UI:GetFontObject(config, class, colorCode)
         font:SetJustifyH(fontConf.justifyH)
         font:SetJustifyV(fontConf.justifyV)
 
-        Xist_UI_Widget:Initialize(font, 'font')
+        Xist_UI:InitializeWidget(font, 'font')
     end
 
-    --if class == 'messages' then
-    --    DEBUG('GetFontObject', isCached and 'cached' or 'NEW', {class=class, colorCode=colorCode}, fontConf)
-    --end
+    if not isCached then
+        DEBUG('GetOrCreateGlobalFontObject', class ..'+'.. colorCode, fontConf, 'color=', color)
+    end
 
     return font, fontFullName
 end
 
 
+--- @return Xist_UI_Widget|nil
+function Xist_UI:GetParentWidget(widget)
+    local frame = widget
+    local parent = widget.GetParent and widget:GetParent()
+    while parent and not parent.widgetType do
+        frame = parent
+        parent = frame:GetParent()
+    end
+    return parent -- possibly nil
+end
+
+
+--- Look in the environment to determine the class of a given widget type.
+--- If called during widget construction/initialization, we will NOT generate the widget
+--- environment, and will instead defer to the parent widget.  This is because some of the
+--- environment is based on the class of widget, which must be known before querying the
+--- environment of the widget itself.
+--- @param widget Xist_UI_Widget
+--- @param widgetType string
+--- @param isConstructing boolean if true we will only look in the parent environment
+--- @return string default class name for this widgetType
+function Xist_UI:GetWidgetClass(widget, widgetType, isConstructing)
+    widgetType = widgetType or widget.widgetType
+
+    local widgetTypeClass = widgetType ..'Class'
+    local env
+
+    if isConstructing then
+        local parent = Xist_UI:GetParentWidget(widget)
+        if parent then
+            env = parent:GetWidgetEnvironment()
+        end
+    else
+        env = widget:GetWidgetEnvironment()
+    end
+
+    return env and env:GetEnv(widgetTypeClass) or 'default'
+end
+
+
+--- Get this widget's font object, optionally of a specific color code.
+--- @param widget Xist_UI_Widget
+--- @param fontClass string|nil
+--- @param colorCode string|nil
+--- @return Font
+function Xist_UI:GetFontObject(widget, fontClass, colorCode)
+    fontClass = fontClass or Xist_UI:GetWidgetClass(widget, 'font')
+    colorCode = colorCode or widget.widgetColorCode or 'default'
+    return GetOrCreateGlobalFontObject(widget.config, fontClass, colorCode)
+end
+
+
+--- @param widget Xist_UI_Widget
 function Xist_UI:MakeWidgetDraggable(widget)
     widget:SetMovable(true)
     widget:EnableMouse(true)
@@ -97,111 +298,90 @@ function Xist_UI:MakeWidgetDraggable(widget)
 end
 
 
+function Xist_UI:CreateWidget(widgetType, frameType, parent, className, config, initArgs)
+    widgetType = widgetType or 'frame'
+    frameType = frameType or 'Frame'
+    parent = parent or Xist_UI.UIParent
+    local widget = CreateFrame(frameType, nil, parent)
+    return Xist_UI:InitializeWidget(widget, widgetType, className, config, initArgs)
+end
+
+
 --- @see https://wowwiki.fandom.com/wiki/UIOBJECT_FontString
 function Xist_UI:FontString(parent, className, colorCode)
     parent = parent or Xist_UI.UIParent
-    local fontString = parent:CreateFontString(nil)
-    Xist_UI_Widget:Initialize(fontString, 'fontString', className)
-    fontString:InitializeFontStringWidget(colorCode)
-    return fontString
+    local fontString = parent:CreateFontString()
+    return Xist_UI:InitializeWidget(fontString, 'fontString', className, nil, {colorCode})
+end
+
+
+function Xist_UI:Texture(parent, className)
+    parent = parent or Xist_UI.UIParent
+    local tex = parent:CreateTexture()
+    return Xist_UI:InitializeWidget(tex, 'texture', className)
+end
+
+
+function Xist_UI:Button(parent, className, config)
+    return self:CreateWidget('button', 'Button', parent, className, config)
+end
+
+
+function Xist_UI:ContextMenu(parent, options, className, config)
+    return self:CreateWidget('contextMenu', 'Frame', parent, className, config, {options})
+end
+
+
+function Xist_UI:Dialog(parent, className, config)
+    return self:CreateWidget('dialog', 'Frame', parent, className, config)
 end
 
 
 function Xist_UI:Frame(parent, className, widgetType, config)
-    parent = parent or Xist_UI.UIParent
-    widgetType = widgetType or 'frame'
-    local frame = CreateFrame('Frame', nil, parent)
-    Xist_UI_Widget:Initialize(frame, widgetType, className, config)
-    return frame
+    return self:CreateWidget(widgetType, 'Frame', parent, className, config)
 end
 
 
-function Xist_UI:Panel(parent, className, widgetType, config)
-    parent = parent or Xist_UI.UIParent
-    widgetType = widgetType or 'panel'
-    local panel = self:Frame(parent, className, widgetType, config)
-    return panel
+function Xist_UI:Label(parent, className, colorCode, config)
+    return self:CreateWidget('label', 'Frame', parent, className, config, {colorCode})
 end
 
 
-function Xist_UI:MessageFrame(parent, className, widgetType, config)
-    parent = parent or Xist_UI.UIParent
-    widgetType = widgetType or 'messageFrame'
-    local panel = self:Panel(parent, className, widgetType, config)
-    panel:InitializeMessageFrameWidget()
-    return panel
+function Xist_UI:MessageFrame(parent, className, config)
+    return self:CreateWidget('messageFrame', 'Frame', parent, className, config)
 end
 
 
-function Xist_UI:Slider(parent, className, widgetType, config)
-    parent = parent or Xist_UI.UIParent
-    widgetType = widgetType or 'slider'
-    local slider = CreateFrame('Frame', nil, parent)
-    Xist_UI_Widget:Initialize(slider, widgetType, className, config)
-    slider:InitializeSliderWidget()
-    return slider
+function Xist_UI:Panel(parent, className, config)
+    return self:CreateWidget('panel', 'Frame', parent, className, config)
 end
 
 
-function Xist_UI:ScrollFrame(parent, contentFrame, className, widgetType, config)
-    parent = parent or Xist_UI.UIParent
-    widgetType = widgetType or 'scrollFrame'
-    local frame = CreateFrame('ScrollFrame', nil, parent)
-    Xist_UI_Widget:Initialize(frame, widgetType, className, config)
-    frame:InitializeScrollFrameWidget(contentFrame)
-    return frame
+function Xist_UI:ScrollFrame(parent, contentFrame, className, config)
+    return self:CreateWidget('scrollFrame', 'ScrollFrame', parent, className, config, {contentFrame})
 end
 
 
-function Xist_UI:ScrollingMessageFrame(parent, className, widgetType, config)
-    parent = parent or Xist_UI.UIParent
-    widgetType = widgetType or 'scrollingMessageFrame'
-    local frame = CreateFrame('ScrollingMessageFrame', nil, parent)
-    Xist_UI_Widget:Initialize(frame, widgetType, className, config)
-    frame:InitializeScrollingMessageFrameWidget()
-    return frame
+function Xist_UI:ScrollingMessageFrame(parent, className, config)
+    return self:CreateWidget('scrollingMessageFrame', 'ScrollingMessageFrame', parent, className, config)
 end
 
 
-function Xist_UI:Label(parent, className, colorCode, widgetType, config)
-    parent = parent or Xist_UI.UIParent
-    widgetType = widgetType or 'label'
-    local label = self:Panel(parent, className, widgetType, config)
-    label:InitializeLabelWidget(colorCode)
-    return label
+function Xist_UI:Slider(parent, className, config)
+    return self:CreateWidget('slider', 'Frame', parent, className, config)
 end
 
 
-function Xist_UI:Button(parent, className, widgetType, config)
-    parent = parent or Xist_UI.UIParent
-    widgetType = widgetType or 'button'
-    local button = CreateFrame('Button', nil, parent)
-    Xist_UI_Widget:Initialize(button, widgetType, className, config)
-    button:InitializeButtonWidget()
-    return button
+function Xist_UI:Table(parent, options, className, config)
+    return self:CreateWidget('table', 'Frame', parent, className, config, {options})
 end
 
 
-function Xist_UI:ContextMenu(parent, options, className, widgetType, config)
-    parent = parent or Xist_UI.UIParent
-    widgetType = widgetType or 'contextMenu'
-    local menu = self:Panel(parent, className, widgetType, config)
-    menu:InitializeContextMenuWidget(options)
-    return menu
+function Xist_UI:Window(parent, title, className, config)
+    return self:CreateWidget('window', 'Frame', parent, className, config, {title})
 end
 
 
-function Xist_UI:Dialog(parent, className, widgetType, config)
-    widgetType = widgetType or 'dialog'
-    local dialog = self:Panel(parent, className, widgetType, config)
-    dialog:InitializeDialogWidget()
-    return dialog
-end
-
-
-function Xist_UI:Window(parent, title, className, widgetType, config)
-    widgetType = widgetType or 'window'
-    local win = self:Dialog(parent, className, widgetType, config)
-    win:InitializeWindowWidget(title)
-    return win
-end
+Xist_UI:InitializeWidget(Xist_UI.UIParent, 'frame', 'default')
+Xist_UI.UIParent:SetAllPoints() -- occupy the entire screen
+Xist_UI.UIParent:Show() -- show UI by default

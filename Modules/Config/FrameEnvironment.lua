@@ -28,7 +28,7 @@ end
 
 function Xist_Config_FrameEnvironment:GetParentEnvironment()
     local env = {}
-    local parent = self.frame:GetParentWidget()
+    local parent = Xist_UI:GetParentWidget(self.frame)
     if parent then
         -- there is a parent widget
         if parent.GetWidgetEnvironment then
@@ -51,17 +51,15 @@ function Xist_Config_FrameEnvironment:GetFrameIdentification(parentFrameIdentifi
     if frameId ~= '' then
         frameId = frameId ..'/'
     end
-    -- add widgetType `parent/type)'
-    frameId = frameId .. self.frame.widgetType
-    -- optionally add widgetClass `parent/type:class'
-    local class = self.frame.widgetClass
-    if class then
-        frameId = frameId ..':'.. class
-    end
-    -- optionally add name `parent/type:class(name)'
+    -- if this frame has a name, display the name
     local name = self.frame:GetName()
     if name then
-        frameId = frameId ..'('.. name ..')'
+        frameId = frameId .. name
+    else
+        -- this frame has no name, add a description of what it is (type:class)
+        frameId = frameId .. (self.frame.widgetType or 'UNKNOWN')
+        local class = self.frame.widgetClass or 'UNKNOWN'
+        frameId = frameId ..':'.. class
     end
     return frameId
 end
@@ -79,4 +77,27 @@ function Xist_Config_FrameEnvironment:GetEnvironment()
         self.env = env
     end
     return Xist_Util.Copy(self.env)
+end
+
+
+function Xist_Config_FrameEnvironment:GetEnv(name, default)
+    local env = self:GetEnvironment()
+    if env[name] == nil then
+        return default -- possibly nil
+    end
+    return env[name]
+end
+
+
+function Xist_Config_FrameEnvironment:GetPadding()
+    local padding = self:GetEnv('padding')
+    if not padding then
+        padding = {
+            top = self:GetEnv('topPadding', 0),
+            left = self:GetEnv('leftPadding', 0),
+            bottom = self:GetEnv('bottomPadding', 0),
+            right = self:GetEnv('rightPadding', 0),
+        }
+    end
+    return padding
 end

@@ -12,7 +12,7 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 Xist_Config = M
 
 
-Xist_Config.DELETE = {'SPECIFIC_TABLE_ID__MEANS__DELETE_THIS_CONFIG_KEY'}
+Xist_Config.NIL = {'SPECIFIC_TABLE_ID__MEANS__DELETE_THIS_CONFIG_KEY'}
 
 
 function Xist_Config:New(config, parent)
@@ -48,7 +48,7 @@ function Xist_Config:ApplyNestedOverrides(config, overrides)
     for k, v in pairs(overrides) do
         if type(v) == 'table' then
             -- override value is a table
-            if v[1] == Xist_Config.DELETE[1] and #v == 1 then
+            if v[1] == Xist_Config.NIL[1] and #v == 1 then
                 -- override value is a specific table that means DELETE this from the config
                 config[k] = nil
             elseif config[k] == nil then

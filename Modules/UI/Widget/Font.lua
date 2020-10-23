@@ -32,7 +32,8 @@ local classes = {
     },
     button = {
         color = {
-            default = { r=0, g=1, b=0, a=1 },
+            default = { r=1, g=1, b=0, a=1 },
+            highlight = { r=0, g=0, b=0, a=1 },
         },
     },
     contextMenu = {
@@ -40,20 +41,27 @@ local classes = {
             default = { r=0.8, g=0.8, b=0, a=1 },
         },
     },
+    contextMenuTitle = {
+        size = 14,
+        color = {
+            default = { r=1, g=1, b=1, a=1 },
+        },
+    },
     messages = {
         justifyH = 'LEFT',
+    },
+    tableDataCell = {
+    },
+    tableHeaderCell = {
+        color = {
+            default = { r=0.2, g=0.2, b=0.2, a=1 },
+        },
     },
     title = {
         size = 16,
         flags = 'OUTLINE',
         color = {
             default = { r=1, g=1, b=0, a=1 },
-        },
-    },
-    contextMenuTitle = {
-        size = 14,
-        color = {
-            default = { r=1, g=1, b=1, a=1 },
         },
     },
 }

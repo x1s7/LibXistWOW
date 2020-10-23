@@ -170,6 +170,11 @@ function Xist_Util.PairsByKeys(tbl, sortFn)
 end
 
 
+function Xist_Util.IsColorCodedString(str)
+    return string.find(str, '|c') ~= nil
+end
+
+
 --- Return the string representation of v.
 --- If v is a string, it will be quoted.
 --- All other types are converted to a string representation.
@@ -204,6 +209,9 @@ function Xist_Util.ValueAsString(v, depth, currentLevel)
         end
         return "{" .. vv .. "}"
     elseif t == "string" then
+        if Xist_Util.IsColorCodedString(v) then
+            v = v ..'|r' -- make sure this color coded string has a "close color" tag at the end
+        end
         return string.format("%q", v) -- it's already a string
     elseif t == "function" then
         return "func()"
@@ -220,7 +228,7 @@ end
 --- @return string
 function Xist_Util.ValueAsStringLiteral(v, depth)
     if type(v) == "string" then
-        return v
+        return v .. (Xist_Util.IsColorCodedString(v) and '|r' or '') -- with a "clear color" flag if needed
     end
     return Xist_Util.ValueAsString(v, depth)
 end

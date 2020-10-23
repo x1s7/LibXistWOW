@@ -110,8 +110,8 @@ function Xist_AddonButton:SetPosition()
 end
 
 
-local function onClick(button, clickType)
-    button.xObj:OnClick(clickType)
+local function onClick(button, buttonType)
+    return button.xObj:OnClick(buttonType, false)
 end
 
 
@@ -125,11 +125,16 @@ local function onDragStop(button)
 end
 
 
+local function onPush(button, buttonType)
+    return button.xObj:OnClick(buttonType, true)
+end
+
+
 --- Create a button to be used as the addon button.
 --- Note: This is called BEFORE save data is available.
 --- @return Button
 function Xist_AddonButton:CreateButton()
-    local button = Xist_UI:Button(Xist_UI.UIParent)
+    local button = Xist_UI:Button(Xist_UI.UIParent, 'addonSettingsButton')
     button:SetSize(24, 24)
     button:SetText('*')
     return button
@@ -144,16 +149,15 @@ function Xist_AddonButton:InitializeButton()
     -- save a reference back to self
     button.xObj = self
 
-    -- activate left + right clicks
-    button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    button:SetScript("OnClick", onClick)
-
     -- allow moving the button around and saving its position after move
     button:SetMovable(true)
     button:SetClampedToScreen(true)
     button:RegisterForDrag("LeftButton")
     button:SetScript("OnDragStart", onDragStart)
     button:SetScript("OnDragStop", onDragStop)
+
+    button:HookScript('OnMouseDown', onPush)
+    button:HookScript('OnMouseUp', onClick)
 
     -- Show the button by default
     button:Show()
@@ -170,12 +174,6 @@ function Xist_AddonButton:Hide()
 end
 
 
---- Handle the user clicking the AddonButton with the left mouse button.
---- You MUST derive your own class and implement this method if you want left button support.
---- @virtual
-Xist_AddonButton.OnLeftClick = protected.NOOP
-
-
 --- Handle the user clicking the AddonButton with the right mouse button.
 --- You MUST derive your own class and implement this method if you want right button support.
 --- @virtual
@@ -184,15 +182,18 @@ Xist_AddonButton.OnRightClick = protected.NOOP
 
 --- Handle user clicking the AddonButton.
 --- @param clickType string The type of click to handle ("LeftButton" or "RightButton")
+--- @param isPushed boolean|nil
 --- @see https://wowwiki.fandom.com/wiki/API_Button_RegisterForClicks
-function Xist_AddonButton:OnClick(clickType)
-    --self:DEBUG("OnClick", clickType)
+function Xist_AddonButton:OnClick(clickType, isPushed)
+    self:DEBUG("OnClick", clickType, isPushed)
     if clickType == "LeftButton" then
-        self:OnLeftClick()
+        self:OnLeftClick(isPushed)
         -- any time left button is clicked, make sure the context menu is hidden
-        if self.menu then self.menu:Hide() end
+        if not isPushed and self.menu then
+            self.menu:Hide()
+        end
     elseif clickType == "RightButton" then
-        self:OnRightClick()
+        self:OnRightClick(isPushed)
     end
 end
 

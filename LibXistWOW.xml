@@ -33,6 +33,10 @@
     <Script file="Modules\UI\Widget\ScrollFrame.lua"/>
     <Script file="Modules\UI\Widget\ScrollingMessageFrame.lua"/>
     <Script file="Modules\UI\Widget\Slider.lua"/>
+    <Script file="Modules\UI\Widget\Table\Data.lua"/>
+    <Script file="Modules\UI\Widget\Table\DataRow.lua"/>
+    <Script file="Modules\UI\Widget\Table\Header.lua"/>
+    <Script file="Modules\UI\Widget\Table.lua"/>
     <Script file="Modules\UI\Widget\Texture.lua"/>
     <Script file="Modules\UI\Widget\Window.lua"/>
     <!-- UI Wrapper (depends on above widgets) -->

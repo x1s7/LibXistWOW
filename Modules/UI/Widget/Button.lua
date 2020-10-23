@@ -11,31 +11,70 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 --- @class Xist_UI_Widget_Button
 Xist_UI_Widget_Button = M
 
+protected.DebugEnabled = true
 
-local inheritance = { Xist_UI_Widget_Button}
+local DEBUG = protected.DEBUG
+
+
+local inheritance = {Xist_UI_Widget_Button}
 
 local settings = {
-    backdrop = true,
     clampedToScreen = true,
     strata = 'DIALOG',
 }
 
 local classes = {
     default = {
-        backdropClass = 'button',
         fontClass = 'button',
+        highlightTextureClass = 'buttonHighlight',
+        normalTextureClass = 'buttonNormal',
+        pushedTextureClass = 'buttonPushed',
+        registerClicks = {'LeftButton', 'RightButton'},
+    },
+    addonSettingsButton = {
     },
     contextMenu = {
-        backdropClass = 'transparent',
         fontClass = 'contextMenu',
+        normalTextureClass = 'buttonTransparent',
+    },
+    tableHeaderCell = {
+        fontClass = 'tableHeaderCell',
+    },
+    tableDataCell = {
+        fontClass = 'default',
     },
 }
 
 
-function Xist_UI_Widget_Button:InitializeButtonWidget()
-    self:SetDisabledFontObject(self:GetWidgetFontObject('disabled'))
-    self:SetHighlightFontObject(self:GetWidgetFontObject('highlight'))
-    self:SetNormalFontObject(self:GetWidgetFontObject('default'))
+local function InitializeButtonWidget(widget)
+    local env = widget:GetWidgetEnvironment()
+    DEBUG('InitializeButtonWidget', widget.widgetClass, env:GetEnvironment())
+
+    widget:SetDisabledFontObject(Xist_UI:GetFontObject(widget, nil, 'disabled'))
+    widget:SetHighlightFontObject(Xist_UI:GetFontObject(widget, nil, 'highlight'))
+    widget:SetNormalFontObject(Xist_UI:GetFontObject(widget, nil, 'default'))
+
+    widget.widgetHighlightTexture = Xist_UI:Texture(widget, env:GetEnv('highlightTextureClass'))
+    widget.widgetNormalTexture = Xist_UI:Texture(widget, env:GetEnv('normalTextureClass'))
+    widget.widgetPushedTexture = Xist_UI:Texture(widget, env:GetEnv('pushedTextureClass'))
+
+    widget:SetNormalTexture(widget.widgetNormalTexture)
+
+    local clicks = env:GetEnv('registerClicks')
+    if clicks and #clicks > 0 then
+        local allClicks = {}
+        for _, click in ipairs(clicks) do
+            allClicks[1+#allClicks] = click ..'Up'
+            allClicks[1+#allClicks] = click ..'Down'
+        end
+        DEBUG('RegisterForClicks', allClicks)
+        widget:RegisterForClicks(unpack(allClicks))
+        widget:HookScript('OnMouseUp', widget.HandleOnMouseUp)
+        widget:HookScript('OnMouseDown', widget.HandleOnMouseDown)
+    end
+
+    widget:HookScript('OnEnter', widget.HandleOnEnter)
+    widget:HookScript('OnLeave', widget.HandleOnLeave)
 end
 
 
@@ -49,4 +88,28 @@ function Xist_UI_Widget_Button:GetTextWidth()
 end
 
 
-Xist_UI_Config:RegisterWidget('button', inheritance, settings, classes)
+function Xist_UI_Widget_Button:HandleOnMouseDown(button)
+    DEBUG('Button:HandleOnMouseDown', button)
+end
+
+
+function Xist_UI_Widget_Button:HandleOnMouseUp(button)
+    DEBUG('Button:HandleOnMouseUp', button)
+end
+
+
+function Xist_UI_Widget_Button:HandleOnEnter()
+    if self:IsEnabled() then
+        self:SetNormalTexture(self.widgetHighlightTexture)
+    end
+end
+
+
+function Xist_UI_Widget_Button:HandleOnLeave()
+    if self:IsEnabled() then
+        self:SetNormalTexture(self.widgetNormalTexture)
+    end
+end
+
+
+Xist_UI_Config:RegisterWidget('button', inheritance, settings, classes, InitializeButtonWidget)

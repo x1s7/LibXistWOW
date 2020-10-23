@@ -30,12 +30,14 @@ local classes = {
 }
 
 
-function Xist_UI_Widget_Label:InitializeLabelWidget(colorCode)
-    self.widgetColorCode = colorCode
+local function InitializeLabelWidget(widget, colorCode)
+    local fontClass = Xist_UI:GetWidgetClass(widget, 'font')
 
-    self.fontString = Xist_UI:FontString(self, self.widgetClass, self.widgetColorCode)
-    self.fontString:SetPoint('TOPLEFT')
-    self.fontString:SetPoint('BOTTOMRIGHT')
+    widget.widgetColorCode = colorCode
+
+    widget.fontString = Xist_UI:FontString(widget, fontClass, widget.widgetColorCode)
+    widget.fontString:SetPoint('TOPLEFT')
+    widget.fontString:SetPoint('BOTTOMRIGHT')
 end
 
 
@@ -57,4 +59,4 @@ function Xist_UI_Widget_Label:SetFontObject(font)
 end
 
 
-Xist_UI_Config:RegisterWidget('label', inheritance, settings, classes)
+Xist_UI_Config:RegisterWidget('label', inheritance, settings, classes, InitializeLabelWidget)

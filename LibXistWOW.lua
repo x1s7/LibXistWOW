@@ -36,8 +36,28 @@ addon:OnLoad(function(addonRef)
     data.toggle = not data.toggle
 end)
 
-local function testUI()
-    local win = Xist_UI:Window(nil, 'TEST UI Window')
+local function whisperBofx()
+    local n = 10
+    for i=1, n do
+        local msg = 'Hello '.. i ..'/'.. n
+        SendChatMessage(msg, 'WHISPER', GetDefaultLanguage('player'), 'Bofx')
+    end
+    return true
+end
+
+local function tableTest()
+    local options = {
+        { title = 'i', cellClass='white', width=40 },
+        { title = 'ii', cellClass='green', width=40 },
+        { title = 'iii', cellClass='blue', width=40 },
+        { title = 'iiii', cellClass='black', width=40 },
+    }
+    local win = Xist_UI:Window(nil, 'Table Test')
+    local table = Xist_UI:Table(win, options)
+    for i=1, 10 do
+        table:AddData({ i, i*i, i*i*i, i*i*i*i })
+    end
+    table:Update()
     win:Show()
     return true
 end
@@ -47,14 +67,17 @@ local contextMenuOptions = {
     {text = "Debug Log", callback = Xist_LogMessageContainer.Show},
     {text = "Dump SMF Info", callback = Xist_LogMessageContainer.DebugDump},
     {text = "Run Unit Tests", callback = function() Xist_UnitTestFramework:Run(); return true end},
-    {text = "UI/Window", callback = testUI},
+    {text = "Whisper Bofx", callback = whisperBofx},
+    {text = "Table Test", callback = tableTest},
 }
 
 local addonButton = Xist_AddonButton:New(addon, contextMenuOptions)
 
-function addonButton:OnLeftClick()
-    addon:DEBUG('Clicked addon button')
-    Xist_LogMessageContainer.Show()
+function addonButton:OnLeftClick(isPushed)
+    addon:DEBUG('Clicked addon button', isPushed)
+    if not isPushed then
+        Xist_LogMessageContainer.Show()
+    end
 end
 
 addonButton:Init()

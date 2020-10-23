@@ -28,24 +28,28 @@ local classes = {
 }
 
 
-function Xist_UI_Widget_Window:InitializeWindowWidget(title)
+local function InitializeWindowWidget(widget, title)
     title = title or 'Undefined Title'
 
-    local closeButton = self.closeButtonWidget
+    -- we want to initialize ourself as a dialog and then apply window settings
+    local initDialog = Xist_UI_Config:GetWidgetInitializeMethod('dialog')
+    initDialog(widget)
 
-    local classConf = self:GetWidgetConfig()
+    local closeButton = widget.closeButtonWidget
+
+    local classConf = widget:GetWidgetConfig()
     local titlePadding = classConf.titlePadding or 0
     local titleFontClass = classConf.titleFontClass or 'title'
 
-    local titleFont = Xist_UI:FontString(self, titleFontClass)
+    local titleFont = Xist_UI:FontString(widget, titleFontClass)
     titleFont:SetText(title)
     titleFont:SetPoint('TOPLEFT', titlePadding, -titlePadding)
     titleFont:SetPoint('TOPRIGHT', -titlePadding -closeButton:GetWidth() -titlePadding, -titlePadding)
 
     -- let other code know where they can safely place other widgets to not cover up the header
     -- self.contentOffset was previously computed by Xist_UI_Widget_Dialog to be the close button height
-    self.contentOffset = math.max(self.contentOffset, titleFont:GetHeight() + titlePadding + titlePadding)
+    widget.contentOffset = math.max(widget.contentOffset, titleFont:GetHeight() + titlePadding + titlePadding)
 end
 
 
-Xist_UI_Config:RegisterWidget('window', inheritance, settings, classes)
+Xist_UI_Config:RegisterWidget('window', inheritance, settings, classes, InitializeWindowWidget)

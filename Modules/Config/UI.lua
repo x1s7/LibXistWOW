@@ -6,10 +6,14 @@ local ModuleVersion = 1
 if not Xist_Module.NeedsUpgrade(ModuleName, ModuleVersion) then return end
 
 -- Initialize Xist_Config_UI
-local M = Xist_Module.Install(ModuleName, ModuleVersion, Xist_Config:New())
+local M, protected = Xist_Module.Install(ModuleName, ModuleVersion, Xist_Config:New())
 
 --- @class Xist_Config_UI
 Xist_Config_UI = M
+
+--protected.DebugEnabled = true
+
+local DEBUG = protected.DEBUG
 
 
 function Xist_Config_UI:New(config, parent)
@@ -36,6 +40,12 @@ function Xist_Config_UI:GetWidgetInheritance(widgetType)
 end
 
 
+function Xist_Config_UI:GetWidgetInitializeMethod(widgetType)
+    local reg = self.registeredWidgets[widgetType]
+    return reg and reg.initFunc -- possibly nil
+end
+
+
 function Xist_Config_UI:SetWidgetInheritance(widgetType, extraInheritance)
     local inheritance = {Xist_UI_Widget}
     if extraInheritance then
@@ -59,8 +69,11 @@ function Xist_Config_UI:SetWidgetClassData(widgetType, data)
 end
 
 
-function Xist_Config_UI:RegisterWidget(widgetType, inheritance, settings, classConfigs)
-    self.registeredWidgets[widgetType] = {}
+function Xist_Config_UI:RegisterWidget(widgetType, inheritance, settings, classConfigs, initFunc)
+    DEBUG('RegisterWidget', widgetType)
+    self.registeredWidgets[widgetType] = {
+        initFunc = initFunc, -- possibly nil
+    }
     self:SetWidgetInheritance(widgetType, inheritance)
     self:SetWidgetSettingsData(widgetType, settings)
     self:SetWidgetClassData(widgetType, classConfigs)

@@ -27,22 +27,22 @@ local classes = {
 }
 
 
-function Xist_UI_Widget_ScrollingMessageFrame:InitializeScrollingMessageFrameWidget()
-    self.isScrollingMessageFrameWidget = true
+local function InitializeScrollingMessageFrameWidget(widget)
+    widget.isScrollingMessageFrameWidget = true
 
-    local parent = self:GetParent()
+    local parent = widget:GetParent()
     local topOffset = parent.contentOffset or 0
     local sidePadding = 0
     local bottomPadding = 0
 
-    self:SetPoint('TOPLEFT', sidePadding, -topOffset)
-    self:SetPoint('BOTTOMRIGHT', -sidePadding, bottomPadding)
+    widget:SetPoint('TOPLEFT', sidePadding, -topOffset)
+    widget:SetPoint('BOTTOMRIGHT', -sidePadding, bottomPadding)
 
-    local messageFrame = Xist_UI:MessageFrame(self)
-    local scrollFrame = Xist_UI:ScrollFrame(self, messageFrame)
+    local messageFrame = Xist_UI:MessageFrame(widget)
+    local scrollFrame = Xist_UI:ScrollFrame(widget, messageFrame)
 
-    self.messageFrame = messageFrame
-    self.scrollFrame = scrollFrame
+    widget.messageFrame = messageFrame
+    widget.scrollFrame = scrollFrame
 end
 
 
@@ -69,4 +69,4 @@ function Xist_UI_Widget_ScrollingMessageFrame:AddMessage(text)
 end
 
 
-Xist_UI_Config:RegisterWidget('scrollingMessageFrame', inheritance, settings, classes)
+Xist_UI_Config:RegisterWidget('scrollingMessageFrame', inheritance, settings, classes, InitializeScrollingMessageFrameWidget)

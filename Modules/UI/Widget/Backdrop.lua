@@ -27,21 +27,13 @@ local classes = {
     },
     borderless = {
         backdrop = {
-            edgeFile = Xist_Config.DELETE,
+            edgeFile = Xist_Config.NIL,
             edgeSize = 0,
         },
     },
     contextMenu = {
-        parent = 'default',
         borderColor = { r=1, g=1, b=0, a=0.8 },
         color = { r=0, g=.05, b=0, a=0.8 },
-    },
-    transparent = {
-        backdrop = {
-            bgFile = Xist_Config.DELETE,
-            edgeFile = Xist_Config.DELETE,
-            edgeSize = 0,
-        },
     },
     slider = {
         backdrop = {
@@ -53,7 +45,28 @@ local classes = {
             insets = { left = 3, right = 3, top = 6, bottom = 6 },
         },
     },
+    tableDataCell = {
+        parent = 'borderless',
+        color = { r=0, g=0, b=0, a=0 }, -- fully transparent
+    },
+    tableHeaderCell = {
+        borderColor = { r=0.3, g=0.3, b=0, a=1 },
+        color = { r=0.6, g=0.6, b=0, a=1 },
+    },
+    transparent = {
+        backdrop = Xist_Config.NIL,
+    },
 }
+
+
+-- Backdrop colors, which aren't generally useful except in debugging for high contrast
+
+classes.black   = { color = { r=0, g=0, b=0, a=1 } }
+classes.blue    = { color = { r=0, g=0, b=1, a=1 } }
+classes.green   = { color = { r=0, g=1, b=0, a=1 } }
+classes.red     = { color = { r=1, g=0, b=0, a=1 } }
+classes.white   = { color = { r=1, g=1, b=1, a=1 } }
+classes.yellow  = { color = { r=1, g=1, b=0, a=1 } }
 
 
 Xist_UI_Config:RegisterWidget('backdrop', nil, nil, classes)

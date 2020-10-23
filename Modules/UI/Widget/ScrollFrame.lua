@@ -34,40 +34,40 @@ local classes = {
 }
 
 
-function Xist_UI_Widget_ScrollFrame:InitializeScrollFrameWidget(scrollChild)
-    local classConf = self:GetWidgetConfig()
+local function InitializeScrollFrameWidget(widget, scrollChild)
+    local classConf = widget:GetWidgetConfig()
 
-    local parent = self:GetParent()
+    local parent = widget:GetParent()
     local topOffset = parent.contentOffset or classConf.topPadding or 0
     local leftPadding = classConf.leftPadding or 0
     local bottomPadding = classConf.bottomPadding or 0
     local rightPadding = classConf.rightPadding or 0
 
-    self:SetPoint('TOPLEFT', leftPadding, -topOffset)
-    self:SetPoint('BOTTOMRIGHT', -rightPadding, bottomPadding)
+    widget:SetPoint('TOPLEFT', leftPadding, -topOffset)
+    widget:SetPoint('BOTTOMRIGHT', -rightPadding, bottomPadding)
 
-    self:EnableMouse(true)
-    self:EnableMouseWheel(true)
+    widget:EnableMouse(true)
+    widget:EnableMouseWheel(true)
 
-    self:SetScript('OnMouseWheel', self.OnMouseWheel)
+    widget:SetScript('OnMouseWheel', widget.OnMouseWheel)
 
     -- we expect the children to be BIGGER in dimensions than this scrollFrame.
     -- DON'T display the parts of the children that are outside of the area of this scrollFrame.
-    self:SetClipsChildren(true)
+    widget:SetClipsChildren(true)
 
     -- here we use default lineHeight == 12 if the scrollChild widget does not support
     -- a GetLineHeight method.  12 is a random guess (font size 12px).  Is there a better guess?
     local lineHeight = scrollChild.GetLineHeight and scrollChild:GetLineHeight() or classConf.defaultLineHeight or 12
 
-    local slider = Xist_UI:Slider(self)
+    local slider = Xist_UI:Slider(widget)
 
     slider:SetValueStep(lineHeight)
-    slider:RegisterEvent('OnValueChanged', Xist_Util.Bind(self, self.OnScrollEvent))
+    slider:RegisterEvent('OnValueChanged', Xist_Util.Bind(widget, widget.OnScrollEvent))
 
-    self.slider = slider
+    widget.slider = slider
 
     -- AFTER setting the dimensions of the scrollFrame
-    self:SetScrollChild(scrollChild)
+    widget:SetScrollChild(scrollChild)
 end
 
 
@@ -143,4 +143,4 @@ function Xist_UI_Widget_ScrollFrame:DebugDump()
 end
 
 
-Xist_UI_Config:RegisterWidget('scrollFrame', inheritance, settings, classes)
+Xist_UI_Config:RegisterWidget('scrollFrame', inheritance, settings, classes, InitializeScrollFrameWidget)

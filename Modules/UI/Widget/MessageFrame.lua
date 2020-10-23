@@ -34,15 +34,15 @@ local classes = {
 }
 
 
-function Xist_UI_Widget_MessageFrame:InitializeMessageFrameWidget()
-    local classConf = self:GetWidgetConfig()
-    local font = self:GetWidgetFontObject()
+local function InitializeMessageFrameWidget(widget)
+    local classConf = widget:GetWidgetConfig()
+    local font = Xist_UI:GetFontObject(widget)
 
-    self.messageQueue = Xist_Queue:New(classConf.maxLines or 10)
-    self.linePadding = classConf.linePadding or 2
-    self.lineSpacing = classConf.lineSpacing or 2
-    self.totalHeight = 0
-    self.fontHeight = font:GetFontHeight()
+    widget.messageQueue = Xist_Queue:New(classConf.maxLines or 10)
+    widget.linePadding = classConf.linePadding or 2
+    widget.lineSpacing = classConf.lineSpacing or 2
+    widget.totalHeight = 0
+    widget.fontHeight = font:GetFontHeight()
 end
 
 
@@ -195,4 +195,4 @@ function Xist_UI_Widget_MessageFrame:DebugDump()
 end
 
 
-Xist_UI_Config:RegisterWidget('messageFrame', inheritance, settings, classes)
+Xist_UI_Config:RegisterWidget('messageFrame', inheritance, settings, classes, InitializeMessageFrameWidget)

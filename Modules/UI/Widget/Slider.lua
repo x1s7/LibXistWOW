@@ -27,13 +27,13 @@ local classes = {
 }
 
 
-function Xist_UI_Widget_Slider:InitializeSliderWidget()
-    self.min = 0
-    self.max = 0
-    self.step = 0
-    self.value = 0
+local function InitializeSliderWidget(widget)
+    widget.min = 0
+    widget.max = 0
+    widget.step = 0
+    widget.value = 0
 
-    self.eventHandler = Xist_EventHandler:NewSliderHandler()
+    widget.eventHandler = Xist_EventHandler:NewSliderHandler()
 end
 
 
@@ -118,4 +118,4 @@ function Xist_UI_Widget_Slider:IsScrolledToEnd()
 end
 
 
-Xist_UI_Config:RegisterWidget('slider', inheritance, settings, classes)
+Xist_UI_Config:RegisterWidget('slider', inheritance, settings, classes, InitializeSliderWidget)

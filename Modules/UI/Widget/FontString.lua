@@ -11,7 +11,7 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 --- @class Xist_UI_Widget_FontString
 Xist_UI_Widget_FontString = M
 
-protected.DebugEnabled = true
+--protected.DebugEnabled = true
 
 local DEBUG = protected.DEBUG
 
@@ -40,14 +40,16 @@ local classes = {
 }
 
 
-function Xist_UI_Widget_FontString:InitializeFontStringWidget(colorCode)
-    self.widgetColorCode = colorCode
-    local font = self:GetWidgetFontObject(colorCode)
-    self:SetFontObject(font)
-    self:SetJustifyH(font:GetJustifyH())
-    self:SetJustifyV(font:GetJustifyV())
-    --DEBUG("Initialize FontString", {class=self.widgetClass, justifyH=font:GetJustifyH()})
+local function InitializeFontStringWidget(widget, colorCode)
+    widget.widgetColorCode = colorCode
+
+    local font = Xist_UI:GetFontObject(widget, nil, colorCode)
+    widget:SetFontObject(font)
+    widget:SetJustifyH(font:GetJustifyH())
+    widget:SetJustifyV(font:GetJustifyV())
+
+    --DEBUG("Initialize FontString", {class=widget.widgetClass, justifyH=font:GetJustifyH()})
 end
 
 
-Xist_UI_Config:RegisterWidget('fontString', inheritance, settings, classes)
+Xist_UI_Config:RegisterWidget('fontString', inheritance, settings, classes, InitializeFontStringWidget)
