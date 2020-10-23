@@ -11,7 +11,7 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 --- @class Xist_Config_FrameEnvironment
 Xist_Config_FrameEnvironment = M
 
-protected.DebugEnabled = true
+--protected.DebugEnabled = true
 
 local DEBUG = protected.DEBUG
 

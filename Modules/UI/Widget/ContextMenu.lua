@@ -11,7 +11,7 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 --- @class Xist_UI_Widget_ContextMenu
 Xist_UI_Widget_ContextMenu = M
 
-protected.DebugEnabled = true
+--protected.DebugEnabled = true
 
 local DEBUG = protected.DEBUG
 local DEBUG_CAT = protected.DEBUG_CAT
