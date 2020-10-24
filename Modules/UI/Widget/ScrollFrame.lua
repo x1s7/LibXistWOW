@@ -25,26 +25,21 @@ local settings = {
 
 local classes = {
     default = {
-        topPadding = 0,
-        leftPadding = 0,
-        bottomPadding = 0,
-        rightPadding = 0,
+        padding = 0,
         defaultLineHeight = 12,
     },
 }
 
 
 local function InitializeScrollFrameWidget(widget, scrollChild)
-    local classConf = widget:GetWidgetConfig()
+    local env = widget:GetWidgetEnvironment()
+    local padding = env:GetPadding()
 
     local parent = widget:GetParent()
-    local topOffset = parent.contentOffset or classConf.topPadding or 0
-    local leftPadding = classConf.leftPadding or 0
-    local bottomPadding = classConf.bottomPadding or 0
-    local rightPadding = classConf.rightPadding or 0
+    local topOffset = parent.contentOffset or 0
 
-    widget:SetPoint('TOPLEFT', leftPadding, -topOffset)
-    widget:SetPoint('BOTTOMRIGHT', -rightPadding, bottomPadding)
+    widget:SetPoint('TOPLEFT', padding.left, -topOffset -padding.top)
+    widget:SetPoint('BOTTOMRIGHT', -padding.right, padding.bottom)
 
     widget:EnableMouse(true)
     widget:EnableMouseWheel(true)
@@ -57,7 +52,7 @@ local function InitializeScrollFrameWidget(widget, scrollChild)
 
     -- here we use default lineHeight == 12 if the scrollChild widget does not support
     -- a GetLineHeight method.  12 is a random guess (font size 12px).  Is there a better guess?
-    local lineHeight = scrollChild.GetLineHeight and scrollChild:GetLineHeight() or classConf.defaultLineHeight or 12
+    local lineHeight = scrollChild.GetLineHeight and scrollChild:GetLineHeight() or env:GetEnv('defaultLineHeight') or 12
 
     local slider = Xist_UI:Slider(widget)
 
@@ -81,7 +76,7 @@ function Xist_UI_Widget_ScrollFrame:OnScrollEvent(value, delta)
     -- if we want to anchor to TOP, then do this:
     --self.scrollChild:SetPoint('TOP', self, 'TOP', 0, value)
 
-    self.scrollChild:SetPoint('BOTTOM', self, 'BOTTOM', 0, -(max - value))
+    self.scrollChild:SetPoint('BOTTOM', self, 'BOTTOM', 0, value - max)
 end
 
 
@@ -112,9 +107,9 @@ end
 function Xist_UI_Widget_ScrollFrame:Redraw()
     local innerHeight = self.scrollChild:GetTotalHeight()
     local visibleHeight = self:GetHeight()
-    local obscuredHeight = math.max(0, innerHeight - visibleHeight)
+    local obscuredHeight = innerHeight - visibleHeight
 
-    if obscuredHeight == 0 then
+    if obscuredHeight <= 0 then
         self.slider:SetMinMaxValues(0, 0)
     else
         self.slider:SetMinMaxValues(0, obscuredHeight)
@@ -123,8 +118,6 @@ end
 
 
 function Xist_UI_Widget_ScrollFrame:DebugDump()
-    self.slider:SetMinMaxValues(0, 1)
-
     local m1 = {
         sliderH = self.slider:GetHeight(),
         sliderW = self.slider:GetWidth(),

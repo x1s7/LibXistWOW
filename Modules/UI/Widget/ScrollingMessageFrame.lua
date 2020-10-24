@@ -24,19 +24,25 @@ local settings = {
 }
 
 local classes = {
+    default = {
+        padding = {
+            h = 4,
+            v = 2,
+            bottom = 4, -- a little more vspace padding on the bottom for messages
+        },
+    },
 }
 
 
 local function InitializeScrollingMessageFrameWidget(widget)
-    widget.isScrollingMessageFrameWidget = true
+    local env = widget:GetWidgetEnvironment()
+    local padding = env:GetPadding()
 
     local parent = widget:GetParent()
     local topOffset = parent.contentOffset or 0
-    local sidePadding = 0
-    local bottomPadding = 0
 
-    widget:SetPoint('TOPLEFT', sidePadding, -topOffset)
-    widget:SetPoint('BOTTOMRIGHT', -sidePadding, bottomPadding)
+    widget:SetPoint('TOPLEFT', padding.left, -topOffset -padding.top)
+    widget:SetPoint('BOTTOMRIGHT', -padding.right, padding.bottom)
 
     local messageFrame = Xist_UI:MessageFrame(widget)
     local scrollFrame = Xist_UI:ScrollFrame(widget, messageFrame)
