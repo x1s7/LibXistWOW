@@ -35,8 +35,10 @@ end
 function Xist_Queue:CreateItem(index, data)
     if type(data) == 'function' then
         data = data(nil, index)
+    elseif data then
+        data = Xist_Util.Copy(data)
     else
-        data = data and Xist_Util.DeepCopy(data) or {index = index}
+        data = {index = index}
     end
     return data
 end
@@ -46,7 +48,7 @@ function Xist_Queue:ResetItem(index, data, item)
     if type(data) == 'function' then
         data = data(item, index)
     elseif data then
-        data = Xist_Util.DeepCopy(data)
+        data = Xist_Util.Copy(data)
     else
         data = {
             index = index,
@@ -127,11 +129,11 @@ function Xist_Queue:SetMaxLength(maxLength)
         local reorder = {}
 
         for i = self.firstIndex, #self.items do
-            table.insert(reorder, self.items[i])
+            reorder[1+#reorder] = self.items[i]
         end
 
         for i = 1, self.firstIndex - 1 do
-            table.insert(reorder, self.items[i])
+            reorder[1+#reorder] = self.items[i]
         end
 
         -- now apply the reorder so we can extend the end of the item list
@@ -144,6 +146,15 @@ function Xist_Queue:SetMaxLength(maxLength)
     end
 
     self.maxLength = maxLength
+end
+
+
+function Xist_Queue:IndexPlusOne(index)
+    index = index + 1
+    if index > self.maxLength and self.maxLength > 0 then
+        index = 1
+    end
+    return index
 end
 
 
@@ -167,19 +178,13 @@ function Xist_Queue:Allocate(data)
         self.items[index] = item
     else
         item = self:ResetItem(index, data, item)
+
+        -- queue is full, we need to advance firstIndex with each allocation
+        self.firstIndex = self:IndexPlusOne(self.firstIndex)
     end
 
-    if index < self.firstIndex then
-        self.firstIndex = self.firstIndex + 1
-        if self.firstIndex > self.maxLength then
-            self.firstIndex = 1
-        end
-    end
-
-    self.nextIndex = index + 1
-    if self.nextIndex > self.maxLength and self.maxLength > 0 then
-        self.nextIndex = 1
-    end
+    -- we allocated a slot, advance nextIndex
+    self.nextIndex = self:IndexPlusOne(self.nextIndex)
 
     return item
 end

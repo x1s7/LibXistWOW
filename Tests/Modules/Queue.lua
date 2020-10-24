@@ -24,13 +24,37 @@ UnitTest:AddTest('Single Element Queue', function()
 
     local item = q:Allocate()
     assert(item.reset == nil)
+    assert(q.firstIndex == 1)
 
     item = q:Allocate()
     assert(item.reset == true)
+    assert(q.firstIndex == 1)
 end)
 
 
 UnitTest:AddTest('Double Element Queue', function()
+    local q = Xist_Queue:New(2)
+
+    local item = q:Allocate()
+    assert(item.reset == nil)
+    assert(q.firstIndex == 1)
+
+    item = q:Allocate()
+    assert(item.reset == nil)
+    assert(q.firstIndex == 1)
+
+    -- here is where we start reusing the queue
+    item = q:Allocate()
+    assert(item.reset == true)
+    assert(q.firstIndex == 2, "Queue firstIndex should have advanced")
+
+    item = q:Allocate()
+    assert(item.reset == true)
+    assert(q.firstIndex == 1, "Queue firstIndex should have advanced again back to the beginning")
+end)
+
+
+UnitTest:AddTest('Double Element Reused Queue', function()
     local q = Xist_Queue:New(2)
     local item
 
@@ -93,7 +117,7 @@ UnitTest:AddTest('Iterate over small sequential list', function()
 end)
 
 
-UnitTest:AddTest('Iterate over non-sequential list', function()
+UnitTest:AddTest('Iterate over non-sequential list', function(self)
     local qSize = 5
     local q = Xist_Queue:New(qSize)
 
@@ -101,12 +125,11 @@ UnitTest:AddTest('Iterate over non-sequential list', function()
 
     -- iterate over the items in the list
     local n = 0
-    for item in q:Iterate() do
+    for _ in q:Iterate() do
         n = n + 1
         if n > q:GetMaxLength() then
             error('Iteration should have stopped before now! n='.. n ..'; qLen='.. q:GetMaxLength())
         end
-        assert(item.index == n)
     end
 
     assert(n == q:GetLength(), 'Expected to iterate each item in the queue')
@@ -205,12 +228,13 @@ UnitTest:AddTest('Non-sequential Get Previous/Next chaining', function()
     local n = 2
     local q = Xist_Queue:New(n)
     AllocateN(q, n + 1) -- allocate 3 so it's non-sequential
-    assert(q:GetPreviousItem(1) == nil, "There should be no item before the first")
-    assert(q:GetNextItem(1) ~= nil, "There should be an item after the first")
-    assert(q:GetNextItem(1).index == 2, "The second item index should be 2")
-    assert(q:GetPreviousItem(2) ~= nil, "The item before 2 should not be nil")
-    assert(q:GetPreviousItem(2).index == 1, "The item index before 2 should be 1")
-    assert(q:GetNextItem(2) == nil, "There should be no item after the last")
+    assert(2 == q.firstIndex, "Queue first index should = 2")
+    assert(q:GetPreviousItem(2) == nil, "There should be no item before the first index")
+    assert(q:GetNextItem(2) ~= nil, "There should be an item after the first")
+    assert(q:GetNextItem(2).index == 1, "The item after the first should have index = 1")
+    assert(q:GetPreviousItem(1) ~= nil, "The item before the second should not be nil")
+    assert(q:GetPreviousItem(1).index == 2, "The item before the second should have index = 2")
+    assert(q:GetNextItem(1) == nil, "There should be no item after the last")
 end)
 
 
