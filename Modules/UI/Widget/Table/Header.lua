@@ -53,7 +53,7 @@ end
 
 function Xist_UI_Widget_Table_Header:InitializeTableHeaderCells()
     local env = self:GetWidgetEnvironment()
-    local padding = env:GetPadding()
+    local spacing = env:GetSpacing()
     local cells = {}
     local maxHeight = 0
     local totalWidth = 0
@@ -64,26 +64,28 @@ function Xist_UI_Widget_Table_Header:InitializeTableHeaderCells()
         cell.columnIndex = i
         cell:HookScript('OnMouseUp', OnHeaderCellMouseUp)
         if i == 1 then
-            cell:SetPoint('TOPLEFT', self, 'TOPLEFT', padding.left, -padding.top)
+            cell:SetPoint('TOPLEFT', self, 'TOPLEFT', spacing.left, -spacing.top)
         else
-            cell:SetPoint('TOPLEFT', cells[i-1], 'TOPRIGHT', padding.right + padding.left, 0)
+            cell:SetPoint('TOPLEFT', cells[i-1], 'TOPRIGHT', spacing.hbetween, 0)
         end
         -- set the text of the cell
         cell:SetText(option.title)
         -- THEN determine the width of the text if we're not forcing a certain width
-        option.headerTitleWidth = cell:GetTextWidth()
-        local width = option.width and option.width or option.headerTitleWidth
+        option.runtimeColumnWidth = cell:GetWidth()
+        local width = option.width and option.width or option.runtimeColumnWidth
         -- set the height/width of the button
-        cell:SetSize(width, cell:GetTextHeight())
+        cell:SetWidth(width)
         -- determine max height and total width
-        local height = padding.top + cell:GetTextHeight() + padding.bottom
+        local height = spacing.top + cell:GetHeight() + spacing.bottom
         if height > maxHeight then
             maxHeight = height
         end
-        totalWidth = totalWidth + padding.left + width + padding.right
+        totalWidth = totalWidth + width + spacing.hbetween
         -- save the cell
         cells[i] = cell
     end
+    -- in case vbetween ~= right, adjust right side spacing for the last cell
+    totalWidth = totalWidth - spacing.hbetween + spacing.right
     return cells, maxHeight, totalWidth
 end
 
@@ -118,13 +120,38 @@ end
 function Xist_UI_Widget_Table_Header:Update()
     for i=1, #self.options do
         local option = self.options[i]
-        local headerCell = self.tableHeaderCells[i]
+        local cell = self.tableHeaderCells[i]
         if i == self.sortIndex then
             local sortPrefix = self.sortAscending and '˄' or '˅'
-            headerCell:SetText(sortPrefix ..' '.. option.title)
+            cell:SetText(sortPrefix ..' '.. option.title)
         else
             -- make sure the text does not contain any sorting
-            headerCell:SetText(option.title)
+            cell:SetText(option.title)
+        end
+
+        -- set the width based on option.runtimeColumnWidth
+        local width = cell:GetWidth()
+        if width > option.runtimeColumnWidth then
+            DEBUG('Header Column', i, 'maxWidth', option.runtimeColumnWidth, 'needs update to', width)
+            option.runtimeColumnWidth = width
+            self.tableWidget:NoteColumnWidthNeedsUpdate(i)
+        elseif width < option.runtimeColumnWidth then
+            -- though the cell doesn't require this much width, make it take the entire column width
+            DEBUG('Header Column', i, 'width', width, 'expanding to column max', option.runtimeColumnWidth)
+            cell:SetWidth(option.runtimeColumnWidth)
+        end
+    end
+end
+
+
+function Xist_UI_Widget_Table_Header:UpdateWidth()
+    for i=1, #self.options do
+        local option = self.options[i]
+        local cell = self.tableHeaderCells[i]
+        local width = cell:GetWidth()
+        if width < option.runtimeColumnWidth then
+            DEBUG('Header Column', i, 'width', width, 'expanding to column max', option.runtimeColumnWidth)
+            cell:SetWidth(option.runtimeColumnWidth)
         end
     end
 end

@@ -25,20 +25,22 @@ local settings = {
 local classes = {
     default = {
         backdropClass = 'red',
+        padding = 2,
+        spacing = 2,
     },
 }
 
 
 local function InitializeTableWidget(widget, options)
+    local env = widget:GetWidgetEnvironment()
     DEBUG('InitializeTableWidget')
 
     local parent = widget:GetParent()
     local topOffset = parent.contentOffset or 0
-    local sidePadding = 0
-    local bottomPadding = 0
+    local padding = env:GetPadding()
 
-    widget:SetPoint('TOPLEFT', sidePadding, -topOffset)
-    widget:SetPoint('BOTTOMRIGHT', -sidePadding, bottomPadding)
+    widget:SetPoint('TOPLEFT', padding.left, -topOffset -padding.top)
+    widget:SetPoint('BOTTOMRIGHT', -padding.right, padding.bottom)
 
     widget.options = options
     widget.headerWidget = Xist_UI:Frame(widget, nil, 'tableHeader')
@@ -64,10 +66,25 @@ function Xist_UI_Widget_Table:SetData(dataList)
 end
 
 
+function Xist_UI_Widget_Table:NoteColumnWidthNeedsUpdate(columnIndex)
+    self.widgetNoteColumnWidthNeedsUpdate = columnIndex -- discard any previous column, we just want to know true/false really
+end
+
+
 --- Update the table after something has changed.
 function Xist_UI_Widget_Table:Update()
+    -- reset width adjustment flag
+    self.widgetNoteColumnWidthNeedsUpdate = nil
+
+    -- update
     self.headerWidget:Update()
     self.dataWidget:Update()
+
+    -- if width adjustments are necessary, update again
+    if self.widgetNoteColumnWidthNeedsUpdate then
+        self.headerWidget:UpdateWidth()
+        self.dataWidget:UpdateWidth()
+    end
 end
 
 

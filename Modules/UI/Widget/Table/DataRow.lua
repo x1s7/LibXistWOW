@@ -37,6 +37,9 @@ end
 
 
 function Xist_UI_Widget_Table_DataRow:InitializeTableDataRowWidget(index)
+    local env = self:GetWidgetEnvironment()
+    local spacing = env:GetSpacing()
+
     self.rowIndex = index
     self.tableDataWidget = self:GetParent()
     self.tableWidget = self.tableDataWidget.tableWidget
@@ -50,11 +53,9 @@ function Xist_UI_Widget_Table_DataRow:InitializeTableDataRowWidget(index)
         self:SetPoint('TOPRIGHT')
     else
         -- anchor to the previous data row
-        self:SetPoint('TOPLEFT', previousRow, 'BOTTOMLEFT')
-        self:SetPoint('TOPRIGHT', previousRow, 'BOTTOMRIGHT')
+        self:SetPoint('TOPLEFT', previousRow, 'BOTTOMLEFT', 0, -spacing.vbetween)
+        self:SetPoint('TOPRIGHT', previousRow, 'BOTTOMRIGHT', 0, -spacing.vbetween)
     end
-
-    self:SetHeight(self.tableDataWidget:GetRowHeight())
 end
 
 
@@ -65,8 +66,7 @@ end
 
 function Xist_UI_Widget_Table_DataRow:InitializeTableDataCells()
     local env = self:GetWidgetEnvironment()
-    local padding = env:GetPadding()
-    local rowHeight = self.tableDataWidget:GetRowHeight()
+    local spacing = env:GetSpacing()
     local cells = {}
     for i=1, #self.options do
         local option = self.options[i]
@@ -76,12 +76,10 @@ function Xist_UI_Widget_Table_DataRow:InitializeTableDataCells()
         cell.columnIndex = i
         cell:HookScript('OnMouseUp', OnDataCellMouseUp)
         if i == 1 then
-            cell:SetPoint('TOPLEFT', self, 'TOPLEFT', padding.left, -padding.top)
+            cell:SetPoint('TOPLEFT', self, 'TOPLEFT', spacing.left, 0)
         else
-            cell:SetPoint('TOPLEFT', cells[i-1], 'TOPRIGHT', padding.right + padding.left, 0)
+            cell:SetPoint('TOPLEFT', cells[i-1], 'TOPRIGHT', spacing.hbetween, 0)
         end
-        local width = option.width or option.headerTitleWidth
-        cell:SetSize(width, rowHeight)
         cells[i] = cell
     end
     return cells
@@ -104,6 +102,8 @@ end
 
 
 function Xist_UI_Widget_Table_DataRow:Update()
+    local maxHeight = 0
+
     for i=1, #self.options do
         local option = self.options[i]
 
@@ -112,6 +112,37 @@ function Xist_UI_Widget_Table_DataRow:Update()
 
         local cell = self.tableDataCells[i]
         cell:SetText(dataValue)
+
+        local width = cell:GetWidth()
+        if width > option.runtimeColumnWidth then
+            DEBUG('Row', self.rowIndex, 'Column', i, 'maxWidth', option.runtimeColumnWidth, 'needs update to', width)
+            option.runtimeColumnWidth = width
+            self.tableWidget:NoteColumnWidthNeedsUpdate(i)
+        elseif width < option.runtimeColumnWidth then
+            -- though the cell doesn't require this much width, make it take the entire column width
+            DEBUG('Row', self.rowIndex, 'Column', i, 'width', width, 'expanding to column max', option.runtimeColumnWidth)
+            cell:SetWidth(option.runtimeColumnWidth)
+        end
+
+        local height = cell:GetHeight()
+        if height > maxHeight then
+            maxHeight = height
+        end
+    end
+
+    self:SetHeight(maxHeight)
+end
+
+
+function Xist_UI_Widget_Table_DataRow:UpdateWidth()
+    for i=1, #self.options do
+        local option = self.options[i]
+        local cell = self.tableDataCells[i]
+        local width = cell:GetWidth()
+        if width < option.runtimeColumnWidth then
+            DEBUG('Row', self.rowIndex, 'Column', i, 'width', width, 'expanding to column max', option.runtimeColumnWidth)
+            cell:SetWidth(option.runtimeColumnWidth)
+        end
     end
 end
 

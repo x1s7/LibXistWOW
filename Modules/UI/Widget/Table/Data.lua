@@ -25,13 +25,17 @@ local classes = {
 
 
 function Xist_UI_Widget_Table_Data:InitializeTableDataWidget()
+    local env = self:GetWidgetEnvironment()
+    local spacing = env:GetSpacing()
+
     self.tableWidget = self:GetParent()
     self.options = self.tableWidget.options
     self.tableData = {}
     self.tableDataRows = {}
+    self.totalHeight = 0
 
     -- positioned under the header widget, taking up the entire available space
-    self:SetPoint('TOPLEFT', self.tableWidget.headerWidget, 'BOTTOMLEFT')
+    self:SetPoint('TOPLEFT', self.tableWidget.headerWidget, 'BOTTOMLEFT', 0, -spacing.vbetween)
     self:SetPoint('BOTTOMRIGHT')
 end
 
@@ -89,11 +93,13 @@ function Xist_UI_Widget_Table_Data:Update()
     self:SortData()
 
     -- 2) Assign data to rows
+    local totalHeight = 0
     for i=1, #self.tableData do
         local row = self:GetOrCreateDataRow(i)
         row:SetData(self.tableData[i])
         row:Update()
         row:Show() -- in case it was previously hidden, show it
+        totalHeight = totalHeight + row:GetHeight()
     end
 
     -- 3) Hide empty rows (data may have been deleted)
@@ -101,11 +107,15 @@ function Xist_UI_Widget_Table_Data:Update()
         local row = self.tableDataRows[i]
         row:Hide()
     end
+
+    self.totalHeight = totalHeight
 end
 
 
-function Xist_UI_Widget_Table_Data:GetRowHeight()
-    return 20 -- todo
+function Xist_UI_Widget_Table_Data:UpdateWidth()
+    for i=1, #self.tableData do
+        self.tableDataRows[i]:UpdateWidth()
+    end
 end
 
 
