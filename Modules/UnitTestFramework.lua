@@ -45,7 +45,15 @@ end
 
 
 function Xist_UnitTestFramework:Output(...)
-    print(Xist_Util.Args2StringLiteral(...))
+    local message = Xist_Util.Args2StringLiteral(...)
+    -- if this is not a console unit test (e.g. we're in the game) and if we have a log message container,
+    -- then send the output to the log message container.
+    if not Xist_CONSOLE_UNIT_TEST and Xist_LogMessageContainer and Xist_LogMessageContainer.AddMessage then
+        Xist_LogMessageContainer.AddMessage(message)
+    else
+        -- When run on the console, or when there is no debug frame in game
+        print(message)
+    end
 end
 
 
@@ -68,14 +76,20 @@ function Xist_UnitTestFramework:OnEndRun()
     end
 
     local digits = Xist_Util.CountDigits(maxTests)
+    local totalFail = 0
 
     for i=1, #self.testSummary do
         local summary = self.testSummary[i]
-        local ok = string.format('%'.. digits ..'d', summary.ok)
-        local total = string.format('%'.. digits ..'d', summary.total)
-        local errorIndicator = (summary.ok == summary.total) and '  ' or '**'
+        local ok = string.format('%0'.. digits ..'d', summary.ok)
+        local total = string.format('%0'.. digits ..'d', summary.total)
+        local fail = summary.total - summary.ok
+        local errorIndicator = (fail == 0) and '  ' or '**'
+        totalFail = totalFail + fail
         self:Output('  '.. ok ..' / '.. total ..'  '.. errorIndicator ..'  '.. summary.class.name)
     end
+
+    self:Output("--------------------------------------------------")
+    self:Output("Total failures:", totalFail)
 end
 
 

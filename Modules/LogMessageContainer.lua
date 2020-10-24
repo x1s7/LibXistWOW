@@ -62,3 +62,8 @@ function Xist_LogMessageContainer.Hide()
     win:Hide()
     return true
 end
+
+
+function Xist_LogMessageContainer.AddMessage(message)
+    smf:AddMessage(message)
+end
