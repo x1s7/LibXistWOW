@@ -74,7 +74,7 @@ local contextMenuOptions = {
 local addonButton = Xist_AddonButton:New(addon, contextMenuOptions)
 
 function addonButton:OnLeftClick(isPushed)
-    addon:DEBUG('Clicked addon button', isPushed)
+    --addon:DEBUG('Clicked addon button', isPushed)
     if not isPushed then
         Xist_LogMessageContainer.Show()
     end
