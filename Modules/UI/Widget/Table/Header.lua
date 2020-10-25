@@ -59,8 +59,9 @@ function Xist_UI_Widget_Table_Header:InitializeTableHeaderCells()
     local totalWidth = 0
     for i=1, #self.options do
         local option = self.options[i]
+        local cellClass = option.cellHeaderClass or nil -- nil means use the default class in this context
         DEBUG('InitializeTableHeaderCells['.. i ..'] option=', option)
-        local cell = Xist_UI:Button(self)
+        local cell = Xist_UI:Button(self, cellClass)
         cell.columnIndex = i
         cell:HookScript('OnMouseUp', OnHeaderCellMouseUp)
         if i == 1 then
