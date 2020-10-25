@@ -77,8 +77,8 @@ function Xist_UI_Widget_Table_Data:SortData()
     local index, asc = self.tableWidget:GetCurrentSortSetting()
     if index ~= nil then
         -- the user has selected to sort based on a column
-        local option = self.options[index] or {}
-        local sort = option.sort or makeDefaultSort(option.sortKey) -- ascending sort function
+        local option = self.options[index]
+        local sort = option.sort or makeDefaultSort(option.sortKey or index) -- ascending sort function
         local comp = sort
         if not asc then -- need to sort descending, swap the parameter order to achieve this
             comp = function(a, b) return sort(b, a) end

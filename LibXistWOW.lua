@@ -68,7 +68,7 @@ local contextMenuOptions = {
     {text = "Table Test", callback = tableTest},
     {text = "Run Unit Tests", callback = function() Xist_UnitTestFramework:Run(); return true end},
     {text = "Whisper Bofx", callback = whisperBofx},
-    {text = "ScrollingMessageFrame Debug Dump", callback = Xist_LogMessageContainer.DebugDump},
+    {text = "SMF Debug Dump", callback = Xist_LogMessageContainer.DebugDump},
 }
 
 local addonButton = Xist_AddonButton:New(addon, contextMenuOptions)

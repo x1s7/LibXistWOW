@@ -80,6 +80,10 @@ function Xist_UI_Widget_Table_DataRow:InitializeTableDataCells()
         else
             cell:SetPoint('TOPLEFT', cells[i-1], 'TOPRIGHT', spacing.hbetween, 0)
         end
+        -- if the column defined a fixed with, assign it now
+        if option.width ~= nil and option.width > 0 then
+            cell:SetFixedWidth(option.width)
+        end
         cells[i] = cell
     end
     return cells

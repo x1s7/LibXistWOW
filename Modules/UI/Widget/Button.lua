@@ -85,19 +85,37 @@ local function InitializeButtonWidget(widget)
 end
 
 
+function Xist_UI_Widget_Button:SetFixedHeight(height)
+    self.widgetFixedHeight = true
+    self:SetHeight(height)
+end
+
+
+function Xist_UI_Widget_Button:SetFixedWidth(width)
+    self.widgetFixedWidth = true
+    self:SetWidth(width)
+end
+
+
 function Xist_UI_Widget_Button:SetFixedSize(width, height)
-    self.widgetFixedSize = true
+    self.widgetFixedWidth = true
+    self.widgetFixedHeight = true
     self:SetSize(width, height)
 end
 
 
 function Xist_UI_Widget_Button:SetText(text)
     self:_SetText(text)
-    if not self.widgetFixedSize then
-        local env = self:GetWidgetEnvironment()
-        local padding = env:GetPadding()
-        DEBUG_CAT('SetText', {text=text}, 'padding=', padding)
+
+    local env = self:GetWidgetEnvironment()
+    local padding = env:GetPadding()
+
+    DEBUG_CAT('SetText', {text=text}, 'padding=', padding)
+
+    if not self.widgetFixedWidth then
         self:SetWidth(padding.left + self:GetTextWidth() + padding.right)
+    end
+    if not self.widgetFixedHeight then
         self:SetHeight(padding.top + self:GetTextHeight() + padding.bottom)
     end
 end

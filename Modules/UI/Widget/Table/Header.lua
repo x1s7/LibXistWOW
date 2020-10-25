@@ -68,13 +68,15 @@ function Xist_UI_Widget_Table_Header:InitializeTableHeaderCells()
         else
             cell:SetPoint('TOPLEFT', cells[i-1], 'TOPRIGHT', spacing.hbetween, 0)
         end
+        -- if the column defined a fixed with, assign it now
+        if option.width ~= nil and option.width > 0 then
+            cell:SetFixedWidth(option.width)
+        end
         -- set the text of the cell
         cell:SetText(option.title)
         -- THEN determine the width of the text if we're not forcing a certain width
-        option.runtimeColumnWidth = cell:GetWidth()
-        local width = option.width and option.width or option.runtimeColumnWidth
-        -- set the height/width of the button
-        cell:SetWidth(width)
+        local width = cell:GetWidth()
+        option.runtimeColumnWidth = width -- initialize the runtimeColumnWidth to the header width
         -- determine max height and total width
         local height = spacing.top + cell:GetHeight() + spacing.bottom
         if height > maxHeight then
