@@ -11,7 +11,7 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 --- @class Xist_UI_Widget_Table_DataRow
 Xist_UI_Widget_Table_DataRow = M
 
-protected.DebugEnabled = true
+--protected.DebugEnabled = true
 
 local DEBUG = protected.DEBUG
 

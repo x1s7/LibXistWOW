@@ -235,9 +235,9 @@ local function GetOrCreateGlobalFontObject(config, class, colorCode)
         Xist_UI:InitializeWidget(font, 'font')
     end
 
-    if not isCached then
-        DEBUG('GetOrCreateGlobalFontObject', class ..'+'.. colorCode, fontConf, 'color=', color)
-    end
+    --if not isCached then
+    --    DEBUG('GetOrCreateGlobalFontObject', class ..'+'.. colorCode, fontConf, 'color=', color)
+    --end
 
     return font, fontFullName
 end
