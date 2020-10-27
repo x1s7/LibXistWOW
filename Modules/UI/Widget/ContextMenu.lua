@@ -16,7 +16,7 @@ Xist_UI_Widget_ContextMenu = M
 local DEBUG = protected.DEBUG
 local DEBUG_CAT = protected.DEBUG_CAT
 
-local inheritance = {Xist_UI_Widget_ContextMenu}
+local inheritance = {'Xist_UI_Widget_ContextMenu'}
 
 local settings = {
     parent = 'panel',
@@ -25,8 +25,9 @@ local settings = {
 local classes = {
     default = {
         backdropClass = 'contextMenu',
-        buttonClass = 'contextMenu',
-        fontClass = 'contextMenu',
+        buttonClass = 'contextMenuOption',
+        fontClass = 'contextMenuOption',
+        labelClass = 'contextMenuOption',
         padding = {
             v = 2,
             h = 4,
@@ -44,8 +45,12 @@ local classes = {
 local function OnContextMenuItemMouseUp(itemFrame, button)
     local hide
     if button == 'LeftButton' then
-        if itemFrame.menuItemConf.callback then
-            hide = itemFrame.menuItemConf.callback() == true
+        -- If the itemFrame does not have an IsEnabled method then it's enabled.
+        -- If it does have one, make sure the item is enabled.
+        if not itemFrame.IsEnabled or itemFrame:IsEnabled() then
+            if itemFrame.menuItemConf.callback then
+                hide = itemFrame.menuItemConf.callback(itemFrame, button) == true
+            end
         end
     elseif button == 'RightButton' then
         hide = true
@@ -84,7 +89,7 @@ function Xist_UI_Widget_ContextMenu:CreateMenuItem(itemConf)
         itemFrame = Xist_UI:Label(self, env:GetEnv('titleFontClass'))
         itemFrame:SetText(itemConf.title)
     elseif itemConf.text then
-        itemFrame = Xist_UI:Button(self)
+        itemFrame = Xist_UI:Button(self) -- Xist_UI:Label(self) -- Xist_UI:Button(self)
         itemFrame:SetText(itemConf.text)
     else
         error('Unsupported ContextMenu item config: '.. Xist_Util.Args2StringLiteral(itemConf))

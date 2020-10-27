@@ -34,7 +34,7 @@ function Xist_Config_UI:GetWidgetInheritance(widgetType)
     end
     -- supply a suitable default for unregistered widgets or inappropriately registered widgets
     if not inheritance then
-        inheritance = {Xist_UI_Widget}
+        inheritance = {}
     end
     return inheritance
 end
@@ -46,12 +46,19 @@ function Xist_Config_UI:GetWidgetInitializeMethod(widgetType)
 end
 
 
-function Xist_Config_UI:SetWidgetInheritance(widgetType, extraInheritance)
-    local inheritance = {Xist_UI_Widget}
-    if extraInheritance then
-        for _, classReference in ipairs(extraInheritance) do
-            inheritance[1+#inheritance] = classReference
+function Xist_Config_UI:SetWidgetInheritance(widgetType, inheritance)
+    if not inheritance then
+        inheritance = {}
+    elseif type(inheritance) == 'table' then
+        for _, className in ipairs(inheritance) do
+            if type(className) ~= 'string' then
+                error('Invalid type '.. type(className) ..'; expected string class name')
+            end
         end
+    elseif type(inheritance) == 'string' then
+        inheritance = {inheritance}
+    else
+        error('Invalid type '.. type(inheritance) ..'; expected string or table[] for class inheritance')
     end
     self.registeredWidgets[widgetType].inheritance = inheritance
 end

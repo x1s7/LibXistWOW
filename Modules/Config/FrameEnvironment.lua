@@ -35,7 +35,7 @@ function Xist_Config_FrameEnvironment:GetParentEnvironment()
         if parent.GetWidgetEnvironment then
             -- the parent is a widget with an environment; copy the environment
             local ENV = parent:GetWidgetEnvironment()
-            env = ENV:GetEnvironment()
+            env = ENV:GetAll()
         end
         if not env.frameIdentification then
             -- the parent hasn't defined a frameIdentification, so supply a suitable default
@@ -66,7 +66,7 @@ function Xist_Config_FrameEnvironment:GetFrameIdentification(parentFrameIdentifi
 end
 
 
-function Xist_Config_FrameEnvironment:GetEnvironment()
+function Xist_Config_FrameEnvironment:GetAll()
     if not self.env then
         local env = self:GetParentEnvironment()
         local id = self:GetFrameIdentification(env.frameIdentification)
@@ -82,7 +82,7 @@ end
 
 
 function Xist_Config_FrameEnvironment:GetEnv(name, default)
-    local env = self:GetEnvironment()
+    local env = self:GetAll()
     if env[name] == nil then
         return default -- possibly nil
     end

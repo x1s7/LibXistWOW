@@ -11,146 +11,153 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 --- @class Xist_UI_Widget_Button
 Xist_UI_Widget_Button = M
 
---protected.DebugEnabled = true
+protected.DebugEnabled = true
 
 local DEBUG = protected.DEBUG
 local DEBUG_CAT = protected.DEBUG_CAT
 
 
-local inheritance = {Xist_UI_Widget_Button}
+local inheritance = {'Xist_UI_Widget_Label', 'Xist_UI_Widget_Button'}
 
 local settings = {
-    clampedToScreen = true,
-    strata = 'DIALOG',
 }
 
 local classes = {
     default = {
+        backdropClass = 'button',
+        disabledTexture = 'buttonDisabled',
         fontClass = 'button',
-        highlightTextureClass = 'buttonHighlight',
-        normalTextureClass = 'buttonNormal',
-        padding = 2,
-        pushedTextureClass = 'buttonPushed',
-        registerClicks = {'LeftButton', 'RightButton'},
-    },
-    addonSettingsButton = {
+        highlightTexture = 'buttonHighlight',
         padding = 4,
+        registerClicks = { 'LeftButton', 'RightButton' }
     },
-    contextMenu = {
-        fontClass = 'contextMenu',
-        normalTextureClass = 'buttonTransparent',
+    contextMenuOption = {
+        backdropClass = 'transparent',
+        fontClass = 'contextMenuOption',
         padding = {
-            h = 6,
             v = 2,
+            h = 6,
         },
-    },
-    tableHeaderCell = {
-        fontClass = 'tableHeaderCell',
-    },
-    tableDataCell = {
-        fontClass = 'default',
     },
 }
 
 
 local function InitializeButtonWidget(widget)
     local env = widget:GetWidgetEnvironment()
-    DEBUG('InitializeButtonWidget', widget.widgetClass, env:GetEnvironment())
+    DEBUG_CAT('InitializeButtonWidget '.. widget.widgetClass, env:GetAll())
 
-    widget:SetDisabledFontObject(Xist_UI:GetFontObject(widget, nil, 'disabled'))
-    widget:SetHighlightFontObject(Xist_UI:GetFontObject(widget, nil, 'highlight'))
-    widget:SetNormalFontObject(Xist_UI:GetFontObject(widget, nil, 'default'))
+    -- we want to initialize ourself as a label and then apply button settings
+    local initLabel = Xist_UI_Config:GetWidgetInitializeMethod('label')
+    initLabel(widget)
 
-    widget.widgetHighlightTexture = Xist_UI:Texture(widget, env:GetEnv('highlightTextureClass'))
-    widget.widgetNormalTexture = Xist_UI:Texture(widget, env:GetEnv('normalTextureClass'))
-    widget.widgetPushedTexture = Xist_UI:Texture(widget, env:GetEnv('pushedTextureClass'))
+    widget.isMouseHovering = false
 
-    widget:SetNormalTexture(widget.widgetNormalTexture)
+    widget:EnableMouse(true)
 
-    local clicks = env:GetEnv('registerClicks')
-    if clicks and #clicks > 0 then
+    local clickButtons = env:GetEnv('registerClicks')
+    if clickButtons and #clickButtons > 0 then
         local allClicks = {}
-        for _, click in ipairs(clicks) do
-            allClicks[1+#allClicks] = click ..'Up'
-            allClicks[1+#allClicks] = click ..'Down'
+        for _, button in ipairs(clickButtons) do
+            allClicks[1+#allClicks] = button ..'Up'
+            allClicks[1+#allClicks] = button ..'Down'
         end
-        DEBUG('RegisterForClicks', allClicks)
         widget:RegisterForClicks(unpack(allClicks))
-        widget:HookScript('OnMouseUp', widget.HandleOnMouseUp)
-        widget:HookScript('OnMouseDown', widget.HandleOnMouseDown)
     end
 
-    widget:HookScript('OnEnter', widget.HandleOnEnter)
-    widget:HookScript('OnLeave', widget.HandleOnLeave)
+    widget:HookScript('OnMouseUp', Xist_UI_Widget_Button.HandleOnMouseUp)
+    widget:HookScript('OnMouseDown', Xist_UI_Widget_Button.HandleOnMouseDown)
+
+    widget.disabledTexture = Xist_UI:Texture(widget, env:GetEnv('disabledTexture'))
+    widget.disabledTexture:Hide()
+
+    widget.highlightTexture = Xist_UI:Texture(widget, env:GetEnv('highlightTexture'))
+    widget.highlightTexture:Hide()
+
+    widget:HookScript('OnEnter', Xist_UI_Widget_Button.HandleOnEnter)
+    widget:HookScript('OnLeave', Xist_UI_Widget_Button.HandleOnLeave)
+
+    widget:SetEnabled(true)
 end
 
 
-function Xist_UI_Widget_Button:SetFixedHeight(height)
-    self.widgetFixedHeight = true
-    self:SetHeight(height)
+function Xist_UI_Widget_Button:RegisterForClicks(...)
+    DEBUG_CAT('RegisterForClicks', ...)
 end
 
 
-function Xist_UI_Widget_Button:SetFixedWidth(width)
-    self.widgetFixedWidth = true
-    self:SetWidth(width)
+function Xist_UI_Widget_Button:IsEnabled()
+    return self.enabled == true
 end
 
 
-function Xist_UI_Widget_Button:SetFixedSize(width, height)
-    self.widgetFixedWidth = true
-    self.widgetFixedHeight = true
-    self:SetSize(width, height)
-end
-
-
-function Xist_UI_Widget_Button:SetText(text)
-    self:_SetText(text)
-
-    local env = self:GetWidgetEnvironment()
-    local padding = env:GetPadding()
-
-    DEBUG_CAT('SetText', {text=text}, 'padding=', padding)
-
-    if not self.widgetFixedWidth then
-        self:SetWidth(padding.left + self:GetTextWidth() + padding.right)
+function Xist_UI_Widget_Button:SetEnabled(enabled)
+    self.enabled = enabled
+    if enabled then
+        self.disabledTexture:Hide()
+        self.fontString:Enable()
+        -- if it gets enabled while the mouse is hovering, show the highlight texture
+        if self.isMouseHovering then
+            self.highlightTexture:Show()
+            self.fontString:Highlight()
+        end
+    else
+        self.disabledTexture:Show()
+        self.fontString:Disable()
+        -- if it gets disabled while the mouse is hovering, hide the highlight texture
+        self.highlightTexture:Hide()
     end
-    if not self.widgetFixedHeight then
-        self:SetHeight(padding.top + self:GetTextHeight() + padding.bottom)
-    end
 end
 
 
-function Xist_UI_Widget_Button:GetTextHeight()
-    return math.floor(self:_GetTextHeight() + 0.5)
+function Xist_UI_Widget_Button:Enable()
+    self:SetEnabled(true)
 end
 
 
-function Xist_UI_Widget_Button:GetTextWidth()
-    return math.floor(self:_GetTextWidth() + 0.5)
+function Xist_UI_Widget_Button:Disable()
+    self:SetEnabled(false)
 end
 
 
 function Xist_UI_Widget_Button:HandleOnMouseDown(button)
-    --DEBUG('Button:HandleOnMouseDown', button)
+    if self:IsEnabled() then
+        --DEBUG('Button:HandleOnMouseDown', button)
+        if self.OnMouseDown then
+            self:OnMouseDown(button)
+        end
+    end
 end
 
 
 function Xist_UI_Widget_Button:HandleOnMouseUp(button)
-    --DEBUG('Button:HandleOnMouseUp', button)
+    if self:IsEnabled() then
+        --DEBUG('Button:HandleOnMouseUp', button)
+        if self.OnMouseUp then
+            self:OnMouseUp(button)
+        end
+        if self.OnClick then
+            self:OnClick(button)
+        end
+    end
 end
 
 
 function Xist_UI_Widget_Button:HandleOnEnter()
+    self.isMouseHovering = true
+
     if self:IsEnabled() then
-        self:SetNormalTexture(self.widgetHighlightTexture)
+        self.highlightTexture:Show()
+        self.fontString:Highlight()
     end
 end
 
 
 function Xist_UI_Widget_Button:HandleOnLeave()
+    self.isMouseHovering = false
+
     if self:IsEnabled() then
-        self:SetNormalTexture(self.widgetNormalTexture)
+        self.highlightTexture:Hide()
+        self.fontString:Unhighlight()
     end
 end
 

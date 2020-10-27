@@ -15,7 +15,7 @@ Xist_UI_Widget_Texture = M
 local DEFAULT_ALPHA_MODE = 'BLEND'
 local DEFAULT_LAYER = 'BACKGROUND'
 
-local inheritance = {Xist_UI_Widget_Texture}
+local inheritance = {'Xist_UI_Widget_Texture'}
 
 local settings = {
 }
@@ -25,18 +25,20 @@ local classes = {
         textureAlphaMode = DEFAULT_ALPHA_MODE,
         textureLayer = DEFAULT_LAYER,
     },
+    buttonDisabled = {
+        textureColor = { r=0.6, g=0.6, b=0.6, a=0.6 },
+    },
     buttonHighlight = {
-        textureColor = { r=0.8, g=0.8, b=0, a=1 },
+        textureColor = { r=0.8, g=0.8, b=0, a=0.8 },
     },
     buttonNormal = {
         textureColor = { r=0.3, g=0, b=0, a=1 },
     },
     buttonPushed = {
-        textureAlphaMode = 'ADD',
         textureColor = { r=0, g=0.3, b=0, a=1 },
     },
     buttonTransparent = {
-        textureColor = { r=0.15, g=0.15, b=0.15, a=1 },
+        textureColor = { r=0, g=0, b=0, a=0 },
     },
     slider = {
         textureFile = [[Interface\Buttons\UI-SliderBar-Button-Vertical]],
@@ -49,7 +51,7 @@ local classes = {
 local function InitTexture(widget)
     local env = widget:GetWidgetEnvironment()
 
-    --DEBUG('InitTexture class=', widget.widgetClass, 'env=', env:GetEnvironment())
+    --DEBUG('InitTexture class=', widget.widgetClass, 'env=', env:GetAll())
 
     widget:SetAllPoints() -- occupy entire space of parent frame
 

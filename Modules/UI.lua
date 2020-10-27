@@ -13,43 +13,72 @@ Xist_UI = M
 
 protected.DebugEnabled = true
 
-local VERBOSE_INHERITANCE_DEBUG = false and protected.DebugEnabled
+local VERBOSE_INHERITANCE_DEBUG = protected.DebugEnabled and false
+local VERBOSE_CLASS_DEBUG = protected.DebugEnabled and false
+local VERBOSE_FONT_CREATION = protected.DebugEnabled and true
+local THROW = false
 
 local DEBUG = protected.DEBUG
+local DEBUG_CAT = protected.DEBUG_CAT
 local WARNING = protected.WARNING
+
+local DEFAULT_FONT = {
+    family = [[Fonts\FRIZQT__.ttf]],
+    size = 12,
+    flags = '', -- OUTLINE,THICKOUTLINE,MONOCHROME
+    justifyH = 'CENTER',
+    justifyV = 'MIDDLE',
+    color = {
+        default = { r=0, g=0, b=0, a=1 },
+        disabled = { r=0.6, g=0.6, b=0.6, a=1 },
+        highlight = { r=1, g=1, b=0, a=1 },
+    },
+}
 
 -- a full screen frame to be the parent of all Xist_UI elements
 -- this way we can easily hide them all in combat, for example
 local Xist__UIParent = CreateFrame('Frame', 'Xist__UIParent', UIParent)
 
 
+local function InheritParentClass(obj, parentClassName)
+    local class = _G[parentClassName]
+    if class == nil then
+        error('No such parent class: `'.. parentClassName .."'")
+    end
+    local wantCopy
+    for k, v in pairs(class) do
+        -- we do NOT want to copy _meta information
+        wantCopy = k ~= '_meta'
+        if wantCopy then
+            -- if obj already has a method of this name, classify it as the super,
+            -- save a reference to it as _methodName
+            if obj[k] and type(obj[k]) == 'function' then
+                if VERBOSE_INHERITANCE_DEBUG then
+                    DEBUG('InheritParentClasses', obj.widgetType, 'override', parentClassName ..'.'.. k, (obj['_'..k] == nil and '' or 'MULTIPLE_OVERRIDE'))
+                end
+                obj['_'.. k] = obj[k]
+            elseif VERBOSE_INHERITANCE_DEBUG then
+                DEBUG('InheritParentClasses', obj.widgetType, 'install', parentClassName ..'.'.. k)
+            end
+            -- install this class method to obj
+            obj[k] = v
+        end
+    end
+end
+
+
 --- Inherit parent classes into obj.
 --- @param obj table
 --- @param inheritClasses table[] list of classes
 local function InheritParentClasses(obj, inheritClasses)
-    inheritClasses = inheritClasses or {Xist_UI_Widget}
+    inheritClasses = inheritClasses or {}
 
-    local wantCopy
+    -- ALL widgets MUST inherit Xist_UI_Widget
+    InheritParentClass(obj, 'Xist_UI_Widget')
+
     -- copy methods from class to obj
-    for _, class in ipairs(inheritClasses) do
-        for k, v in pairs(class) do
-            -- we do NOT want to copy _meta information
-            wantCopy = k ~= '_meta'
-            if wantCopy then
-                -- if obj already has a method of this name, classify it as the super,
-                -- save a reference to it as _methodName
-                if obj[k] and type(obj[k]) == 'function' then
-                    if VERBOSE_INHERITANCE_DEBUG then
-                        DEBUG('InheritParentClasses', obj.widgetType, 'override', k, (obj['_'..k] == nil and '' or 'MULTIPLE_OVERRIDE'))
-                    end
-                    obj['_'.. k] = obj[k]
-                elseif VERBOSE_INHERITANCE_DEBUG then
-                    DEBUG('InheritParentClasses', obj.widgetType, 'install', k)
-                end
-                -- install this class method to obj
-                obj[k] = v
-            end
-        end
+    for _, className in ipairs(inheritClasses) do
+        InheritParentClass(obj, className)
     end
 end
 
@@ -69,38 +98,63 @@ end
 --- @param widget Xist_UI_Widget
 --- @return table
 local function GetBackdropConfig(widget)
-    local wcData = widget:GetWidgetConfig()
-    local configNamespace = Xist_Config_Namespace:New(widget.config, 'backdropClasses')
-    return configNamespace:GetClassData(wcData.backdropClass) or {}
+    local env = widget:GetWidgetEnvironment()
+    local class = env:GetEnv('backdropClass')
+    local conf = {}
+    if class then
+        local configNamespace = Xist_Config_Namespace:New(widget.config, 'backdropClasses')
+        conf = configNamespace:GetClassData(class) or {}
+        conf.backdropClass = class
+    end
+    return conf
 end
 
 
-local function InitializeBackdrop(widget)
-    -- If there is no backdrop config then there is nothing to do
-    local conf = GetBackdropConfig(widget)
-    if not conf.backdrop then return end
+function Xist_UI:InitializeBackdrop(widget)
+    local debugInfo = {
+        widgetClass = widget.widgetClass,
+    }
+    local backdropColor
+    local borderColor
 
-    -- first make sure this frame contains the backdrop mixin
+    -- first make sure this frame contains the backdrop mixin if possible
     if not widget.SetBackdrop then
-        Mixin(widget, BackdropTemplateMixin)
-    end
-
-    widget:SetBackdrop(conf.backdrop)
-    --DEBUG('backdrop =', conf.backdrop)
-
-    local c = conf.color
-    if c then
-        widget:SetBackdropColor(c.r, c.g, c.b, c.a)
-        --DEBUG('backdrop color =', c)
-    end
-
-    if (conf.backdrop.edgeSize or 0) > 0 then
-        c = conf.borderColor
-        if c then
-            widget:SetBackdropBorderColor(c.r, c.g, c.b, c.a)
-            --DEBUG('backdrop border color =', c)
+        if BackdropTemplateMixin then
+            Mixin(widget, BackdropTemplateMixin)
+            debugInfo.mixin = true
+        else
+            -- this happens in Classic for fontString and texture widgets
+            --DEBUG_CAT('InitializeBackdrop '.. widget.widgetType, '-- NO SetBackdrop ON THIS WIDGET AND NO BackdropTemplateMixin IN THIS WOW CLIENT')
+            return
         end
     end
+
+    -- If there is no backdrop config then there is nothing to do
+    local conf = GetBackdropConfig(widget)
+
+    if conf.backdrop then
+        -- backdrops have been enabled for this widget
+
+        widget:SetBackdrop(conf.backdrop)
+
+        local c = conf.backdropColor
+        if c then
+            widget:SetBackdropColor(c.r, c.g, c.b, c.a)
+            backdropColor = c
+        end
+
+        if (conf.backdrop.edgeSize or 0) > 0 then
+            c = conf.borderColor
+            if c then
+                widget:SetBackdropBorderColor(c.r, c.g, c.b, c.a)
+                borderColor = c
+            end
+        end
+    else
+        debugInfo.empty = true
+    end
+
+    DEBUG_CAT('InitializeBackdrop '.. widget.widgetType, debugInfo, 'backdropColor=', backdropColor, 'borderColor=', borderColor)
 end
 
 
@@ -121,9 +175,8 @@ function Xist_UI:InitializeWidget(obj, type, className, config, initArgs)
     end
 
     -- find out if there is a parent frame attached to this object
-    local parent = obj.GetParent and obj:GetParent() or nil
-    local isParentWidget = parent and parent.widgetType
-    local parentConfigObject = isParentWidget and parent.config or Xist_UI_Config
+    local parentWidget = Xist_UI:GetParentWidget(obj)
+    local parentConfigObject = parentWidget and parentWidget.config or Xist_UI_Config
 
     -- if config is nil, then this will simply create a pseudo config that inherits
     -- all the attributes of the parent's config.
@@ -141,6 +194,9 @@ function Xist_UI:InitializeWidget(obj, type, className, config, initArgs)
 
     -- Save the settings for later reference
     obj.widgetSettings = settings
+
+    -- Initialize the backdrop, if any
+    Xist_UI:InitializeBackdrop(obj)
 
     -- TODO these things should not be widget settings, they should be widget CLASS settings
 
@@ -167,7 +223,7 @@ function Xist_UI:InitializeWidget(obj, type, className, config, initArgs)
     end
 
     if settings.backdrop then
-        InitializeBackdrop(obj)
+        Xist_UI:InitializeBackdrop(obj)
     end
 
     if settings.show == false then
@@ -187,37 +243,27 @@ end
 
 --- Get or Create a Font object with settings defined in the config.
 --- Created objects are cached globally for reuse.
---- @param config Xist_Config
+--- @param widget
 --- @param class string|nil
 --- @param colorCode string|nil
 --- @return Font
-local function GetOrCreateGlobalFontObject(config, class, colorCode)
-    class = class or 'default'
-    colorCode = colorCode or 'default'
+local function GetOrCreateGlobalFontObject(widget, class, colorCode)
+    class = class or Xist_UI:GetWidgetClass(widget, 'font') or 'default'
+    colorCode = colorCode or widget.widgetColorCode or 'default'
 
-    local fontClasses = config:GetKey({'fontClasses'})
-    if not fontClasses then
-        error('No fontClasses defined in config')
-    end
+    local configNamespace = Xist_Config_Namespace:New(widget.config, 'fontClasses')
+    local fontConf = configNamespace:GetClassData(class) or {}
 
-    local fontConf = fontClasses.default
-    if not fontConf then
-        error('No fontClasses.default defined in config')
-    end
-
-    if class ~= 'default' and fontClasses[class] ~= nil then
-        Xist_Config:ApplyNestedOverrides(fontConf, fontClasses[class])
-    end
+    local color = fontConf.color and (fontConf.color[colorCode] or fontConf.color.default) or DEFAULT_FONT.color.default
 
     -- CreateFont *requires* a globally unique name for this font
     -- We won't ever refer to this by its name but we still need to generate a unique name
 
-    local color = fontConf.color[colorCode] or fontConf.color.default
-
     local fontFullName = "LibXistWOW Runtime Font "..
-            fontConf.family .." ".. fontConf.size .." ".. fontConf.flags ..";"..
-            color.r ..",".. color.g ..",".. color.b ..":".. color.a ..";"..
-            fontConf.justifyH .."-".. fontConf.justifyV
+            class ..":".. colorCode .."/"..
+            fontConf.family .."/".. fontConf.size .."/".. fontConf.flags .."/"..
+            color.r ..",".. color.g ..",".. color.b ..",".. color.a .."/"..
+            fontConf.justifyH .."/".. fontConf.justifyV
 
     local isCached = false
     local font
@@ -227,17 +273,20 @@ local function GetOrCreateGlobalFontObject(config, class, colorCode)
         isCached = true
     else
         font = CreateFont(fontFullName)
+
         font:SetFont(fontConf.family, fontConf.size, fontConf.flags)
         font:SetTextColor(color.r, color.g, color.b, color.a)
         font:SetJustifyH(fontConf.justifyH)
         font:SetJustifyV(fontConf.justifyV)
 
-        Xist_UI:InitializeWidget(font, 'font')
+        Xist_UI:InitializeWidget(font, 'font', class)
     end
 
-    --if not isCached then
-    --    DEBUG('GetOrCreateGlobalFontObject', class ..'+'.. colorCode, fontConf, 'color=', color)
-    --end
+    if VERBOSE_FONT_CREATION then
+        if not isCached then
+            DEBUG_CAT('GetOrCreateGlobalFontObject '.. class ..'+'.. colorCode, fontConf, 'color=', color, {key=fontFullName})
+        end
+    end
 
     return font, fontFullName
 end
@@ -251,7 +300,11 @@ function Xist_UI:GetParentWidget(widget)
         frame = parent
         parent = frame:GetParent()
     end
-    return parent -- possibly nil
+    -- only return the parent frame if it is a widget
+    if parent and parent.widgetType then
+        return parent
+    end
+    return nil
 end
 
 
@@ -267,7 +320,7 @@ end
 function Xist_UI:GetWidgetClass(widget, widgetType, isConstructing)
     widgetType = widgetType or widget.widgetType
 
-    local widgetTypeClass = widgetType ..'Class'
+    local configKey = widgetType ..'Class'
     local env
 
     if isConstructing then
@@ -279,7 +332,21 @@ function Xist_UI:GetWidgetClass(widget, widgetType, isConstructing)
         env = widget:GetWidgetEnvironment()
     end
 
-    return env and env:GetEnv(widgetTypeClass) or 'default'
+    local class = env and env:GetEnv(configKey) or 'default'
+
+    if VERBOSE_CLASS_DEBUG then
+        DEBUG_CAT('GetWidgetClass '.. widgetType,
+                {isConstructing=isConstructing, class=class},
+                'env=', (env and env:GetAll()))
+
+        if env == nil and isConstructing and class == 'default' then
+            if THROW then
+                error('HEREIAMJH')
+            end
+        end
+    end
+
+    return class
 end
 
 
@@ -289,9 +356,7 @@ end
 --- @param colorCode string|nil
 --- @return Font
 function Xist_UI:GetFontObject(widget, fontClass, colorCode)
-    fontClass = fontClass or Xist_UI:GetWidgetClass(widget, 'font')
-    colorCode = colorCode or widget.widgetColorCode or 'default'
-    return GetOrCreateGlobalFontObject(widget.config, fontClass, colorCode)
+    return GetOrCreateGlobalFontObject(widget, fontClass, colorCode)
 end
 
 
@@ -330,12 +395,18 @@ end
 
 
 function Xist_UI:Button(parent, className, config)
-    return self:CreateWidget('button', 'Button', parent, className, config)
+    VERBOSE_INHERITANCE_DEBUG = protected.DebugEnabled
+    local widget = self:CreateWidget('button', 'Frame', parent, className, config)
+    VERBOSE_INHERITANCE_DEBUG = false
+    return widget
 end
 
 
 function Xist_UI:ContextMenu(parent, options, className, config)
-    return self:CreateWidget('contextMenu', 'Frame', parent, className, config, {options})
+    DEBUG_CAT('ContextMenu >>>>>>>>>>')
+    local widget = self:CreateWidget('contextMenu', 'Frame', parent, className, config, {options})
+    DEBUG_CAT('ContextMenu <<<<<<<<<<')
+    return widget
 end
 
 
@@ -385,7 +456,10 @@ end
 
 
 function Xist_UI:Window(parent, title, className, config)
-    return self:CreateWidget('window', 'Frame', parent, className, config, {title})
+    VERBOSE_CLASS_DEBUG = protected.DebugEnabled -- on if debugging is on
+    local widget = self:CreateWidget('window', 'Frame', parent, className, config, {title})
+    VERBOSE_CLASS_DEBUG = false
+    return widget
 end
 
 

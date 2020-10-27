@@ -15,15 +15,13 @@ Xist_UI_Widget_Table_Header = M
 
 local DEBUG = protected.DEBUG
 
-local inheritance = {Xist_UI_Widget_Table_Header}
+local inheritance = {'Xist_UI_Widget_Table_Header'}
 
 local settings = {
-    backdrop = true,
 }
 
 local classes = {
     default = {
-        backdrop = Xist_Config.NIL,
         buttonClass = 'tableHeaderCell',
     },
 }

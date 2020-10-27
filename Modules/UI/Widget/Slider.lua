@@ -12,7 +12,7 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 Xist_UI_Widget_Slider = M
 
 
-local inheritance = {Xist_UI_Widget_Slider}
+local inheritance = {'Xist_UI_Widget_Slider'}
 
 local settings = {
     parent = 'frame',

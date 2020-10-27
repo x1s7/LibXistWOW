@@ -47,25 +47,42 @@ end
 
 local function tableTest()
     local options = {
-        { title = 'i', cellClass='white', width=40 },
-        { title = 'ii', cellClass='green', width=40 },
-        { title = 'iii', cellClass='blue', width=40 },
-        { title = 'iiii', cellClass='black', width=40 },
+        { title = 'i', width=40 },
+        { title = 'ii' },
+        { title = 'iii' },
+        { title = 'iiii' },
     }
     local win = Xist_UI:Window(nil, 'Table Test')
     local table = Xist_UI:Table(win, options)
     for i=1, 10 do
-        table:AddData({ i, i*i, i*i*i, i*i*i*i })
+        table:AddData({ i, i*i-i, i*i*i-i, i*i*i*i-i })
     end
     table:Update()
     win:Show()
     return true
 end
 
+local disabledWidget
+local function disableTest(optionWidget)
+    optionWidget:Disable()
+    disabledWidget = optionWidget
+    return false -- do not close the context menu
+end
+
+local function enableTest(optionWidget)
+    if disabledWidget then
+        disabledWidget:Enable()
+        disabledWidget = nil
+    end
+    return false -- do not close the context menu
+end
+
 local contextMenuOptions = {
     {title = addon:GetName(), color = {1, 1, 0}},
     {text = "Open Debug Log", callback = Xist_LogMessageContainer.Show},
     {text = "Table Test", callback = tableTest},
+    {text = "Disable Test", callback = disableTest},
+    {text = "Enable Test", callback = enableTest},
     {text = "Run Unit Tests", callback = function() Xist_UnitTestFramework:Run(); return true end},
     {text = "Whisper Bofx", callback = whisperBofx},
     {text = "SMF Debug Dump", callback = Xist_LogMessageContainer.DebugDump},

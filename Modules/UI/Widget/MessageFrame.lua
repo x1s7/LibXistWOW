@@ -17,7 +17,7 @@ local DEBUG = protected.DEBUG
 local MESSAGE = protected.MESSAGE
 
 
-local inheritance = {Xist_UI_Widget_MessageFrame}
+local inheritance = {'Xist_UI_Widget_MessageFrame'}
 
 local settings = {
     parent = 'panel',

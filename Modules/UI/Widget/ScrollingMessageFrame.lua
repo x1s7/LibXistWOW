@@ -16,7 +16,7 @@ Xist_UI_Widget_ScrollingMessageFrame = M
 local DEBUG = protected.DEBUG
 
 
-local inheritance = {Xist_UI_Widget_ScrollingMessageFrame}
+local inheritance = {'Xist_UI_Widget_ScrollingMessageFrame'}
 
 local settings = {
     parent = 'frame',

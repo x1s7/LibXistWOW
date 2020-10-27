@@ -12,7 +12,7 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 Xist_UI_Widget_Window = M
 
 
-local inheritance = {Xist_UI_Widget_Dialog, Xist_UI_Widget_Window}
+local inheritance = {'Xist_UI_Widget_Dialog', 'Xist_UI_Widget_Window'}
 
 local settings = {
     parent = 'panel',
@@ -21,6 +21,7 @@ local settings = {
 
 local classes = {
     default = {
+        backdropClass = 'default',
         padding = 2,
         spacing = 4,
         titleFontClass = 'title',

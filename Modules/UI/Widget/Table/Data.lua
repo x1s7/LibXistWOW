@@ -12,14 +12,14 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 Xist_UI_Widget_Table_Data = M
 
 
-local inheritance = {Xist_UI_Widget_Table_Data}
+local inheritance = {'Xist_UI_Widget_Table_Data'}
 
 local settings = {
-    backdrop = false,
 }
 
 local classes = {
     default = {
+        backdropClass = Xist_Config.NIL,
     },
 }
 

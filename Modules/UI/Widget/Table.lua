@@ -16,10 +16,9 @@ protected.DebugEnabled = true
 local DEBUG = protected.DEBUG
 
 
-local inheritance = {Xist_UI_Widget_Table}
+local inheritance = {'Xist_UI_Widget_Table'}
 
 local settings = {
-    backdrop = true,
 }
 
 local classes = {

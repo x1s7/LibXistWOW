@@ -195,7 +195,7 @@ end
 
 function Xist_Config:GetConfig()
     self:CleanIfDirty()
-    return Xist_Util.DeepCopy(self.mergedConfig)
+    return Xist_Util.Copy(self.mergedConfig)
 end
 
 
@@ -216,5 +216,5 @@ function Xist_Config:GetKey(path)
         end
         result = result[k]
     end
-    return Xist_Util.DeepCopy(result)
+    return Xist_Util.Copy(result)
 end

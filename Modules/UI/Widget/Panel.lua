@@ -12,11 +12,10 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 Xist_UI_Widget_Panel = M
 
 
-local inheritance = {Xist_UI_Widget_Panel}
+local inheritance = {'Xist_UI_Widget_Panel'}
 
 local settings = {
     parent = 'frame',
-    backdrop = true,
     clampedToScreen = true,
     height = 200,
     strata = 'DIALOG',
