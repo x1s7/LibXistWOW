@@ -89,8 +89,10 @@ function Xist_UI_Widget_ContextMenu:CreateMenuItem(itemConf)
         if itemConf.callback then
             local menu = self
             itemFrame:RegisterEvent('OnClick', function(frame, button)
-                if itemConf.callback(frame, button) == true then
-                    menu:Hide()
+                if button == 'LeftButton' then
+                    if itemConf.callback(frame) == true then
+                        menu:Hide()
+                    end
                 end
             end)
         end
