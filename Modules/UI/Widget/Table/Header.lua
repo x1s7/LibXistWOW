@@ -22,7 +22,9 @@ local settings = {
 
 local classes = {
     default = {
+        backdropClass = 'blue',
         buttonClass = 'tableHeaderCell',
+        spacing = 2,
     },
 }
 

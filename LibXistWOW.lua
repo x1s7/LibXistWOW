@@ -57,7 +57,6 @@ local function tableTest()
     for i=1, 10 do
         table:AddData({ i, i*i-i, i*i*i-i, i*i*i*i-i })
     end
-    table:Update()
     win:Show()
     return true
 end

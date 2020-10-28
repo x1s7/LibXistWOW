@@ -11,9 +11,10 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 --- @class Xist_UI_Widget_Table
 Xist_UI_Widget_Table = M
 
-protected.DebugEnabled = true
+--protected.DebugEnabled = true
 
 local DEBUG = protected.DEBUG
+local DEBUG_CAT = protected.DEBUG_CAT
 
 
 local inheritance = {'Xist_UI_Widget_Table'}
@@ -23,7 +24,7 @@ local settings = {
 
 local classes = {
     default = {
-        backdropClass = 'red',
+        backdropClass = 'transparent',
         padding = 2,
         spacing = 2,
     },
@@ -47,6 +48,11 @@ local function InitializeTableWidget(widget, options)
 
     widget.headerWidget:InitializeTableHeaderWidget()
     widget.dataWidget:InitializeTableDataWidget()
+
+    -- set contentOffset BEFORE creating the scrollFrame, it uses this info
+    widget.contentOffset = widget.headerWidget:GetHeight() + padding.vbetween
+
+    widget.scrollFrame = Xist_UI:ScrollFrame(widget, widget.dataWidget)
 end
 
 
@@ -57,11 +63,13 @@ end
 
 function Xist_UI_Widget_Table:AddData(data)
     self.dataWidget:AddData(data)
+    self:Update()
 end
 
 
 function Xist_UI_Widget_Table:SetData(dataList)
     self.dataWidget:SetData(dataList)
+    self:Update()
 end
 
 
@@ -84,6 +92,10 @@ function Xist_UI_Widget_Table:Update()
         self.headerWidget:UpdateWidth()
         self.dataWidget:UpdateWidth()
     end
+
+    DEBUG_CAT('Table Update', {headerHeight=self.headerWidget:GetHeight(), dataHeight=self.dataWidget:GetHeight(), scrollHeight=self.scrollFrame:GetHeight()})
+
+    self.scrollFrame:Redraw()
 end
 
 

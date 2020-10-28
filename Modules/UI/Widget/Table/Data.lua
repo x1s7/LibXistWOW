@@ -11,6 +11,10 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 --- @class Xist_UI_Widget_Table_Data
 Xist_UI_Widget_Table_Data = M
 
+--protected.DebugEnabled = true
+
+local DEBUG_CAT = protected.DEBUG_CAT
+
 
 local inheritance = {'Xist_UI_Widget_Table_Data'}
 
@@ -19,24 +23,23 @@ local settings = {
 
 local classes = {
     default = {
-        backdropClass = Xist_Config.NIL,
+        backdropClass = 'green',
+        spacing = {
+            h = 0,
+            v = 2,
+        },
     },
 }
 
 
 function Xist_UI_Widget_Table_Data:InitializeTableDataWidget()
     local env = self:GetWidgetEnvironment()
-    local spacing = env:GetSpacing()
 
+    self.spacing = env:GetSpacing()
     self.tableWidget = self:GetParent()
     self.options = self.tableWidget.options
     self.tableData = {}
     self.tableDataRows = {}
-    self.totalHeight = 0
-
-    -- positioned under the header widget, taking up the entire available space
-    self:SetPoint('TOPLEFT', self.tableWidget.headerWidget, 'BOTTOMLEFT', 0, -spacing.vbetween)
-    self:SetPoint('BOTTOMRIGHT')
 end
 
 
@@ -47,7 +50,6 @@ end
 
 function Xist_UI_Widget_Table_Data:SetData(dataList)
     self.tableData = Xist_Util.Copy(dataList) or {}
-    self.tableWidget:Update()
 end
 
 
@@ -61,6 +63,17 @@ function Xist_UI_Widget_Table_Data:GetOrCreateDataRow(index)
         local row = Xist_UI:Frame(self, nil, 'tableDataRow')
         row:InitializeTableDataRowWidget(index)
         self.tableDataRows[index] = row
+
+        local previousRow = self:GetDataRow(index-1) -- possibly nil
+        if not previousRow then
+            -- anchor to the top/left of the table data widget
+            row:SetPoint('TOPLEFT', self.spacing.left, -self.spacing.top)
+            row:SetPoint('TOPRIGHT', -self.spacing.right, -self.spacing.top)
+        else
+            -- anchor to the previous data row
+            row:SetPoint('TOPLEFT', previousRow, 'BOTTOMLEFT', 0, -self.spacing.vbetween)
+            row:SetPoint('TOPRIGHT', previousRow, 'BOTTOMRIGHT', 0, -self.spacing.vbetween)
+        end
     end
     return self.tableDataRows[index]
 end
@@ -93,22 +106,26 @@ function Xist_UI_Widget_Table_Data:Update()
     self:SortData()
 
     -- 2) Assign data to rows
-    local totalHeight = 0
+    local height = self.spacing.top
     for i=1, #self.tableData do
         local row = self:GetOrCreateDataRow(i)
         row:SetData(self.tableData[i])
         row:Update()
         row:Show() -- in case it was previously hidden, show it
-        totalHeight = totalHeight + row:GetHeight()
+        height = height + row:GetHeight() + self.spacing.vbetween
     end
 
     -- 3) Hide empty rows (data may have been deleted)
-    for i=#self.tableData, #self.tableDataRows do
+    for i=#self.tableData + 1, #self.tableDataRows do
         local row = self.tableDataRows[i]
         row:Hide()
     end
 
-    self.totalHeight = totalHeight
+    -- adjust the height of the table to fit all the rows
+    height = height - self.spacing.vbetween + self.spacing.bottom
+    self:SetHeight(height)
+
+    DEBUG_CAT('Update', {nRows=#self.tableData, height=height})
 end
 
 

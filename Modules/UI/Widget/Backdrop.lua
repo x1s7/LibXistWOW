@@ -69,12 +69,12 @@ local classes = {
 
 -- Backdrop colors, which aren't generally useful except in debugging for high contrast
 
-classes.black   = { backdropColor = { r=0, g=0, b=0, a=1 } }
-classes.blue    = { backdropColor = { r=0, g=0, b=1, a=1 } }
-classes.green   = { backdropColor = { r=0, g=1, b=0, a=1 } }
-classes.red     = { backdropColor = { r=1, g=0, b=0, a=1 } }
-classes.white   = { backdropColor = { r=1, g=1, b=1, a=1 } }
-classes.yellow  = { backdropColor = { r=1, g=1, b=0, a=1 } }
+classes.black   = { parent = 'borderless', backdropColor = { r=0, g=0, b=0, a=1 } }
+classes.blue    = { parent = 'borderless', backdropColor = { r=0, g=0, b=1, a=1 } }
+classes.green   = { parent = 'borderless', backdropColor = { r=0, g=1, b=0, a=1 } }
+classes.red     = { parent = 'borderless', backdropColor = { r=1, g=0, b=0, a=1 } }
+classes.white   = { parent = 'borderless', backdropColor = { r=1, g=1, b=1, a=1 } }
+classes.yellow  = { parent = 'borderless', backdropColor = { r=1, g=1, b=0, a=1 } }
 
 
 Xist_UI_Config:RegisterWidget('backdrop', nil, nil, classes)

@@ -25,6 +25,10 @@ local classes = {
     default = {
         backdropClass = 'tableDataCell',
         buttonClass = 'tableDataCell',
+        spacing = {
+            h = 2,
+            v = 0,
+        },
     },
 }
 
@@ -37,24 +41,14 @@ end
 
 function Xist_UI_Widget_Table_DataRow:InitializeTableDataRowWidget(index)
     local env = self:GetWidgetEnvironment()
-    local spacing = env:GetSpacing()
 
     self.rowIndex = index
+    self.spacing = env:GetSpacing()
     self.tableDataWidget = self:GetParent()
-    self.tableWidget = self.tableDataWidget.tableWidget
     self.options = self.tableDataWidget.options
-    self.tableDataCells = self:InitializeTableDataCells()
+    self.tableWidget = self.tableDataWidget.tableWidget
 
-    local previousRow = self.tableDataWidget:GetDataRow(index-1) -- possibly nil
-    if not previousRow then
-        -- anchor to the top/left of the table data widget
-        self:SetPoint('TOPLEFT')
-        self:SetPoint('TOPRIGHT')
-    else
-        -- anchor to the previous data row
-        self:SetPoint('TOPLEFT', previousRow, 'BOTTOMLEFT', 0, -spacing.vbetween)
-        self:SetPoint('TOPRIGHT', previousRow, 'BOTTOMRIGHT', 0, -spacing.vbetween)
-    end
+    self.tableDataCells = self:InitializeTableDataCells()
 end
 
 
@@ -75,7 +69,7 @@ function Xist_UI_Widget_Table_DataRow:InitializeTableDataCells()
         cell.columnIndex = i
         cell:RegisterEvent('OnClick', OnDataCellClick)
         if i == 1 then
-            cell:SetPoint('TOPLEFT', self, 'TOPLEFT', spacing.left, 0)
+            cell:SetPoint('TOPLEFT', self, 'TOPLEFT', spacing.left, -spacing.top)
         else
             cell:SetPoint('TOPLEFT', cells[i-1], 'TOPRIGHT', spacing.hbetween, 0)
         end
@@ -106,6 +100,7 @@ end
 
 function Xist_UI_Widget_Table_DataRow:Update()
     local maxHeight = 0
+    local spacing = self.spacing
 
     for i=1, #self.options do
         local option = self.options[i]
@@ -133,7 +128,7 @@ function Xist_UI_Widget_Table_DataRow:Update()
         end
     end
 
-    self:SetHeight(maxHeight)
+    self:SetHeight(spacing.top + maxHeight + spacing.bottom)
 end
 
 

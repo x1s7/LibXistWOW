@@ -47,34 +47,6 @@ local function InitializeMessageFrameWidget(widget)
 end
 
 
---- Get the height of a single line of text.
---- The returned value includes any spacing between lines.
---- @return number
-function Xist_UI_Widget_MessageFrame:GetLineHeight()
-    return self.spacing.vbetween + self.fontHeight
-end
-
-
---- Set the parent frame.
---- Once we change the parent frame we will also adjust the width/height of this MessageFrame
---- to fill up the parent, and anchor this MessageFrame to the bottom of the parent frame.
---- @param parent Frame
-function Xist_UI_Widget_MessageFrame:SetParent(parent)
-    self:_SetParent(parent)
-    self:SetWidth(parent:GetWidth())
-    self:SetHeight(parent:GetHeight())
-    self:ClearAllPoints()
-    self:SetPoint('BOTTOM')
-end
-
-
---- Get the total height of the MessageFrame.
---- @return number
-function Xist_UI_Widget_MessageFrame:GetTotalHeight()
-    return self.totalHeight
-end
-
-
 --- Get the maximum number of messages kept in memory.
 --- @return number
 function Xist_UI_Widget_MessageFrame:GetMaxMessages()

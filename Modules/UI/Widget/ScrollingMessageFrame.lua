@@ -47,6 +47,8 @@ local function InitializeScrollingMessageFrameWidget(widget)
     local messageFrame = Xist_UI:MessageFrame(widget)
     local scrollFrame = Xist_UI:ScrollFrame(widget, messageFrame)
 
+    scrollFrame:SetFocusMode('BOTTOM')
+
     widget.messageFrame = messageFrame
     widget.scrollFrame = scrollFrame
 end
