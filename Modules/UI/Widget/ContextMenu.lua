@@ -50,16 +50,7 @@ end
 
 
 local function OnContextMenuItemMouseUp(itemFrame, button)
-    if button == 'LeftButton' then
-        -- menu items that have a callback cause the menu to close automatically on left click,
-        -- UNLESS the conf explicitly disables this behavior.
-        local conf = itemFrame.menuItemConf
-        if conf.callback then
-            if conf.closeMenuOnLeftClick ~= false then
-                itemFrame.menu:Hide()
-            end
-        end
-    elseif button == 'RightButton' then
+    if button == 'RightButton' then
         itemFrame.menu:Hide()
     end
 end
@@ -96,7 +87,12 @@ function Xist_UI_Widget_ContextMenu:CreateMenuItem(itemConf)
         itemFrame = Xist_UI:Button(self) -- Xist_UI:Label(self) -- Xist_UI:Button(self)
         itemFrame:SetText(itemConf.text)
         if itemConf.callback then
-            itemFrame:RegisterEvent('OnClick', itemConf.callback)
+            local menu = self
+            itemFrame:RegisterEvent('OnClick', function(frame, button)
+                if itemConf.callback(frame, button) == true then
+                    menu:Hide()
+                end
+            end)
         end
     else
         error('Unsupported ContextMenu item config: '.. Xist_Util.Args2StringLiteral(itemConf))
