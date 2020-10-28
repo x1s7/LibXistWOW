@@ -232,9 +232,10 @@ end
 --- Add support for a slash command.
 --- @param commandName string Name of the slashcommand, NOT including the "/" (e.g. "libxist")
 function Xist_Addon:AddSlashCommand(commandName)
-    local n = 1 + #self.slashCommands
+    local i = 1 + #self.slashCommands
+    self.slashCommands[i] = commandName
     local addonIdent = string.upper(self.name)
-    local globalName = "SLASH_".. addonIdent .. n
+    local globalName = "SLASH_".. addonIdent .. i
     _G[globalName] = "/".. commandName
 end
 
@@ -294,12 +295,13 @@ function Xist_Addon:ADDON_LOADED(name)
         self:DEBUG("Read Save Data", self.CacheData)
         self.oAddonEventHandler:TriggerEvent("OnSaveDataRead", self.CacheData)
 
-        -- execute onload callback if any
-        self.oAddonEventHandler:TriggerEvent("OnLoad", self)
-
         if self.bAnnounceLoad then
             self.protected.MESSAGE("version", tostring(self.version), "loaded")
         end
+
+        -- execute onload callback if any
+        self.oAddonEventHandler:TriggerEvent("OnLoad", self)
+
     elseif VERBOSE_ADDON_LOADED_DEBUG then
         -- display verbose output regarding addon load order
         self:DEBUG("[OTHER] ADDON_LOADED", name)
