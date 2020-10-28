@@ -176,15 +176,15 @@ end
 
 --- Get a reference to the SaveData data.
 --- This gives you a reference to the actual data that is saved, not the SaveData wrapper.
---- @return any
+--- @return table
 function Xist_Addon:GetDataReference()
-    return self.CacheData -- possibly nil
+    return self.CacheData
 end
 
 
 --- Set the SaveData data.
 --- Overwrite any existing SaveData data with the new data.
---- @param data any
+--- @param data table
 function Xist_Addon:SetDataReference(data)
     self.CacheData = data
 end
@@ -312,10 +312,13 @@ end
 --- Commit changes to the save data.
 function Xist_Addon:WriteSaveData()
     if self.SaveData then
+        self:DEBUG_CAT('WriteSaveData', self.CacheData)
         -- before we write the save data, allow callbacks to make their updates to the cache
         self.oAddonEventHandler:TriggerEvent("OnSaveDataWrite")
         -- now write the save data
         self.SaveData:Write(self.CacheData)
+    else
+        self:DEBUG_CAT('WriteSaveData', 'SaveData is nil - no save performed')
     end
 end
 

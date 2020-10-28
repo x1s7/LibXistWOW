@@ -31,7 +31,7 @@ local debugMessageQueue = { "--- begin debug log ---" }
 function Xist_Log:New(name)
     local obj = {
         name = name, -- possibly nil
-        settings = Xist_Util.DeepCopy(DEFAULT_SETTINGS)
+        settings = Xist_Util.Copy(DEFAULT_SETTINGS)
     }
     setmetatable(obj, self)
     self.__index = self

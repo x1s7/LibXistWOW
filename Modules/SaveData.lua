@@ -61,12 +61,12 @@ end
 --- @return table
 function Xist_SaveData:CreateMetaData(data)
     -- copy current metaData, or create a new one
-    local metaData = Xist_Util.DeepCopy(self.metaData) or {
+    local metaData = Xist_Util.Copy(self.metaData) or {
         time = 0,
         writes = 0,
     }
     -- place a copy of the data into the new metaData
-    metaData.data = Xist_Util.DeepCopy(data)
+    metaData.data = Xist_Util.Copy(data)
     return metaData
 end
 
@@ -79,7 +79,7 @@ function Xist_SaveData:Read()
     local valid = false
     -- look for saved data in the scope
     if self.scope then
-        metaData = Xist_Util.DeepCopy(self.scope[self.name])
+        metaData = Xist_Util.Copy(self.scope[self.name])
         if metaData then
             if metaData.time then -- DO NOT check metaData.data, it could legitimately be nil
                 valid = true
@@ -122,7 +122,7 @@ function Xist_SaveData:Write(data)
         metaData.time = time() -- mark the current time of the write
         metaData.writes = metaData.writes + 1 -- increment the number of writes
         self.metaData = metaData -- store the new metaData locally
-        self.scope[self.name] = Xist_Util.DeepCopy(metaData) -- write a copy of the metaData to the save scope
+        self.scope[self.name] = Xist_Util.Copy(metaData) -- write a copy of the metaData to the save scope
         DEBUG("Write: `".. self.name .."' wrote", metaData)
     else
         -- throw an exception

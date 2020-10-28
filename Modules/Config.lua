@@ -21,7 +21,7 @@ function Xist_Config:New(config, parent)
         if type(config.GetConfig) == 'function' then
             config = config:GetConfig()
         else -- otherwise make a deep copy so we can modify the config in place
-            config = Xist_Util.DeepCopy(config)
+            config = Xist_Util.Copy(config)
         end
     end
     local obj = {
