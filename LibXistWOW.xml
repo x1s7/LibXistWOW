@@ -52,6 +52,7 @@
     <!-- Other Modules -->
     <Script file="Modules\Addon.lua"/>
     <Script file="Modules\AddonButton.lua"/>
+    <Script file="Modules\Item.lua"/>
     <Script file="Modules\FriendsList.lua"/>
     <Script file="Modules\GameState.lua"/>
     <Script file="Modules\SaveData.lua"/>
