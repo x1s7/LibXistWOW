@@ -49,7 +49,7 @@ local function InitializeWindowWidget(widget, title)
 
     -- let other code know where they can safely place other widgets to not cover up the header
     -- self.contentOffset was previously computed by Xist_UI_Widget_Dialog to be the close button height
-    widget.contentOffset = math.max(widget.contentOffset, titleFont:GetHeight() + spacing.top + spacing.bottom)
+    widget.contentOffset = math.max(widget.contentOffset, titleFont:GetHeight() + spacing.top + spacing.vbetween)
 end
 
 

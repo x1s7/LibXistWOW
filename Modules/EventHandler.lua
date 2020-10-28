@@ -43,7 +43,7 @@ protected.ADDON_SPECIFIC_EVENTS = {
 }
 
 protected.SLIDER_SPECIFIC_EVENTS = {
-    OnValueChanged = {} -- any time the value of the slider changes -- callback(value, delta)
+    OnValueChanged = {}, -- any time the value of the slider changes -- callback(value, delta)
 }
 
 
@@ -86,6 +86,22 @@ function Xist_EventHandler:NewSliderHandler()
     obj.ident = 'Xist_UI_Widget_Slider'
     obj.KnownEvents = protected.SLIDER_SPECIFIC_EVENTS
     obj.isGlobal = false
+    return obj
+end
+
+
+--- @usage local handler = Xist_EventHandler:NewWidgetHandler(widget, {'OnFoo', 'OnBar'})
+--- @param widget Xist_UI_Widget
+--- @param eventNames table[]
+--- @return Xist_EventHandler
+function Xist_EventHandler:NewWidgetHandler(widget, eventNames)
+    local obj = self:New()
+    obj.isGlobal = false
+    obj.ident = widget.widgetType
+    obj.KnownEvents = {}
+    for i=1, #eventNames do
+        obj.KnownEvents[eventNames[i]] = {}
+    end
     return obj
 end
 
