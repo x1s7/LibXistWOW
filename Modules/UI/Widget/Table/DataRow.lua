@@ -29,7 +29,7 @@ local classes = {
 }
 
 
-local function OnDataCellMouseUp(cell, button)
+local function OnDataCellClick(cell, button)
     local tableDataRow = cell:GetParent()
     tableDataRow:HandleClickOnIndex(cell.columnIndex, button)
 end
@@ -73,7 +73,7 @@ function Xist_UI_Widget_Table_DataRow:InitializeTableDataCells()
         DEBUG('InitializeTableDataCells['.. i ..'] option=', option)
         local cell = Xist_UI:Button(self, cellClass)
         cell.columnIndex = i
-        cell:HookScript('OnMouseUp', OnDataCellMouseUp)
+        cell:RegisterEvent('OnClick', OnDataCellClick)
         if i == 1 then
             cell:SetPoint('TOPLEFT', self, 'TOPLEFT', spacing.left, 0)
         else

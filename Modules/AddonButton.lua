@@ -111,7 +111,7 @@ end
 
 
 local function onClick(button, buttonType)
-    return button.xObj:OnClick(buttonType, false)
+    return button.xObj:OnClick(buttonType)
 end
 
 
@@ -122,11 +122,6 @@ end
 
 local function onDragStop(button)
     return button.xObj:StopMovingOrSizing()
-end
-
-
-local function onPush(button, buttonType)
-    return button.xObj:OnClick(buttonType, true)
 end
 
 
@@ -156,8 +151,7 @@ function Xist_AddonButton:InitializeButton()
     button:SetScript("OnDragStart", onDragStart)
     button:SetScript("OnDragStop", onDragStop)
 
-    button:HookScript('OnMouseDown', onPush)
-    button:HookScript('OnMouseUp', onClick)
+    button:RegisterEvent('OnClick', onClick)
 
     -- Show the button by default
     button:Show()
@@ -190,18 +184,17 @@ Xist_AddonButton.OnRightClick = protected.NOOP
 
 --- Handle user clicking the AddonButton.
 --- @param clickType string The type of click to handle ("LeftButton" or "RightButton")
---- @param isPushed boolean|nil
 --- @see https://wowwiki.fandom.com/wiki/API_Button_RegisterForClicks
-function Xist_AddonButton:OnClick(clickType, isPushed)
-    --self:DEBUG("OnClick", clickType, isPushed)
+function Xist_AddonButton:OnClick(clickType)
+    --self:DEBUG("OnClick", clickType)
     if clickType == "LeftButton" then
-        self:OnLeftClick(isPushed)
+        self:OnLeftClick()
         -- any time left button is clicked, make sure the context menu is hidden
-        if not isPushed and self.menu then
+        if self.menu then
             self.menu:Hide()
         end
     elseif clickType == "RightButton" then
-        self:OnRightClick(isPushed)
+        self:OnRightClick()
     end
 end
 

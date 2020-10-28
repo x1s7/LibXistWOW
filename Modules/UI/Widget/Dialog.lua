@@ -37,7 +37,7 @@ local function InitializeDialogWidget(widget)
     closeButton:SetText('X')
     --closeButton:SetFixedSize(16, 16)
     closeButton:SetPoint('TOPRIGHT', -spacing.right, -spacing.top)
-    closeButton:HookScript('OnMouseUp', function() widget:Hide() end)
+    closeButton:RegisterEvent('OnClick', function() widget:Hide() end)
 
     widget.closeButtonWidget = closeButton
 

@@ -29,6 +29,7 @@ local classes = {
         fontClass = 'button',
         highlightTexture = 'buttonHighlight',
         padding = 4,
+        pushedTexture = 'buttonPushed',
         registerClicks = { 'LeftButton', 'RightButton' }
     },
     contextMenuOption = {
@@ -50,6 +51,13 @@ local function InitializeButtonWidget(widget)
     local initLabel = Xist_UI_Config:GetWidgetInitializeMethod('label')
     initLabel(widget)
 
+    widget.eventHandler = Xist_EventHandler:NewWidgetHandler(widget, {
+        'OnClick', 'OnMouseUp', 'OnMouseDown',
+        'OnEnable', 'OnDisable',
+        'OnMouseEnter', 'OnMouseLeave'
+    })
+
+    widget.isMouseDown = false
     widget.isMouseHovering = false
 
     widget:EnableMouse(true)
@@ -73,10 +81,18 @@ local function InitializeButtonWidget(widget)
     widget.highlightTexture = Xist_UI:Texture(widget, env:GetEnv('highlightTexture'))
     widget.highlightTexture:Hide()
 
+    widget.pushedTexture = Xist_UI:Texture(widget, env:GetEnv('pushedTexture'))
+    widget.pushedTexture:Hide()
+
     widget:HookScript('OnEnter', Xist_UI_Widget_Button.HandleOnEnter)
     widget:HookScript('OnLeave', Xist_UI_Widget_Button.HandleOnLeave)
 
     widget:SetEnabled(true)
+end
+
+
+function Xist_UI_Widget_Button:RegisterEvent(eventName, callback)
+    self.eventHandler:RegisterEvent(eventName, callback)
 end
 
 
@@ -91,20 +107,27 @@ end
 
 
 function Xist_UI_Widget_Button:SetEnabled(enabled)
-    self.enabled = enabled
-    if enabled then
-        self.disabledTexture:Hide()
-        self.fontString:Enable()
-        -- if it gets enabled while the mouse is hovering, show the highlight texture
-        if self.isMouseHovering then
-            self.highlightTexture:Show()
-            self.fontString:Highlight()
+    if self.enabled ~= enabled then
+        -- The enabled state is changing
+        self.enabled = enabled
+        if enabled then
+            self.disabledTexture:Hide()
+            self.fontString:Enable()
+            -- if it gets enabled while the mouse is hovering, show the highlight texture
+            if self.isMouseHovering then
+                self.highlightTexture:Show()
+                self.fontString:Highlight()
+            end
+            self.eventHandler:TriggerEvent('OnEnable', self)
+        else
+            self.disabledTexture:Show()
+            self.fontString:Disable()
+            -- if it gets disabled while the mouse is hovering, hide the highlight texture
+            self.highlightTexture:Hide()
+            -- in case it was pushed when it got disabled, disable pushed texture
+            self.pushedTexture:Hide()
+            self.eventHandler:TriggerEvent('OnDisable', self)
         end
-    else
-        self.disabledTexture:Show()
-        self.fontString:Disable()
-        -- if it gets disabled while the mouse is hovering, hide the highlight texture
-        self.highlightTexture:Hide()
     end
 end
 
@@ -120,23 +143,34 @@ end
 
 
 function Xist_UI_Widget_Button:HandleOnMouseDown(button)
+    self.isMouseDown = true
+
     if self:IsEnabled() then
         --DEBUG('Button:HandleOnMouseDown', button)
-        if self.OnMouseDown then
-            self:OnMouseDown(button)
-        end
+        self.pushedTexture:Show() -- button is now pushed
+        self.highlightTexture:Hide() -- don't highlight while showing pushed
+
+        self.eventHandler:TriggerEvent('OnMouseDown', self, button)
     end
 end
 
 
 function Xist_UI_Widget_Button:HandleOnMouseUp(button)
+    self.isMouseDown = false
+
     if self:IsEnabled() then
         --DEBUG('Button:HandleOnMouseUp', button)
-        if self.OnMouseUp then
-            self:OnMouseUp(button)
+        self.pushedTexture:Hide() -- button is no longer pushed
+        if self.isMouseHovering then
+            self.highlightTexture:Show() -- mouse is hovering, show highlight
         end
-        if self.OnClick then
-            self:OnClick(button)
+
+        -- Register OnMouseUp events regardless of whether the event happened on top of the button or not
+        self.eventHandler:TriggerEvent('OnMouseUp', self, button)
+
+        -- Only register the OnClick event to callers if the mouse up happened OVER THE TOP OF the button.
+        if self.isMouseHovering then
+            self.eventHandler:TriggerEvent('OnClick', self, button)
         end
     end
 end
@@ -146,8 +180,14 @@ function Xist_UI_Widget_Button:HandleOnEnter()
     self.isMouseHovering = true
 
     if self:IsEnabled() then
-        self.highlightTexture:Show()
         self.fontString:Highlight()
+        if self.isMouseDown then
+            self.pushedTexture:Show() -- mouse is still down, reactivate pushed
+        else
+            self.highlightTexture:Show() -- mouse isn't down, highlight
+        end
+
+        self.eventHandler:TriggerEvent('OnMouseEnter', self)
     end
 end
 
@@ -156,8 +196,11 @@ function Xist_UI_Widget_Button:HandleOnLeave()
     self.isMouseHovering = false
 
     if self:IsEnabled() then
-        self.highlightTexture:Hide()
         self.fontString:Unhighlight()
+        self.highlightTexture:Hide()
+        self.pushedTexture:Hide() -- in case the button was pushed, show that now it is not
+
+        self.eventHandler:TriggerEvent('OnMouseLeave', self)
     end
 end
 

@@ -42,20 +42,24 @@ local classes = {
 }
 
 
+local function OnContextMenuMouseUp(contextMenu, button)
+    if button == 'RightButton' then
+        contextMenu:Hide()
+    end
+end
+
+
 local function OnContextMenuItemMouseUp(itemFrame, button)
-    local hide
     if button == 'LeftButton' then
-        -- If the itemFrame does not have an IsEnabled method then it's enabled.
-        -- If it does have one, make sure the item is enabled.
-        if not itemFrame.IsEnabled or itemFrame:IsEnabled() then
-            if itemFrame.menuItemConf.callback then
-                hide = itemFrame.menuItemConf.callback(itemFrame, button) == true
+        -- menu items that have a callback cause the menu to close automatically on left click,
+        -- UNLESS the conf explicitly disables this behavior.
+        local conf = itemFrame.menuItemConf
+        if conf.callback then
+            if conf.closeMenuOnLeftClick ~= false then
+                itemFrame.menu:Hide()
             end
         end
     elseif button == 'RightButton' then
-        hide = true
-    end
-    if hide then
         itemFrame.menu:Hide()
     end
 end
@@ -91,6 +95,9 @@ function Xist_UI_Widget_ContextMenu:CreateMenuItem(itemConf)
     elseif itemConf.text then
         itemFrame = Xist_UI:Button(self) -- Xist_UI:Label(self) -- Xist_UI:Button(self)
         itemFrame:SetText(itemConf.text)
+        if itemConf.callback then
+            itemFrame:RegisterEvent('OnClick', itemConf.callback)
+        end
     else
         error('Unsupported ContextMenu item config: '.. Xist_Util.Args2StringLiteral(itemConf))
     end
@@ -105,11 +112,15 @@ end
 function Xist_UI_Widget_ContextMenu:InitializeMenuOptions(options)
     local env = self:GetWidgetEnvironment()
     local spacing = env:GetSpacing()
+    local widgetBorderWidth = Xist_UI:GetWidgetBorderWidth(self)
 
-    DEBUG_CAT('InitializeMenuItems >>>>>>>>>>>>>>>>>>>', 'spacing=', spacing)
+    DEBUG_CAT('InitializeMenuItems >>>>>>>>>>>>>>>>>>>', 'spacing=', spacing, 'widgetBorderWidth=', widgetBorderWidth)
 
     local items = {}
-    local offset = spacing.top
+    local offsetTop = widgetBorderWidth + spacing.top
+    local offsetLeft = widgetBorderWidth + spacing.left
+    local offsetRight = widgetBorderWidth + spacing.right
+    local offsetBottom = widgetBorderWidth + spacing.bottom
     local maxWidth = 0
     local itemFrame, width, height
 
@@ -120,7 +131,7 @@ function Xist_UI_Widget_ContextMenu:InitializeMenuOptions(options)
         height = itemFrame:GetHeight()
 
         itemFrame:ClearAllPoints()
-        itemFrame:SetPoint('TOPLEFT', spacing.left, -offset)
+        itemFrame:SetPoint('TOPLEFT', offsetLeft, -offsetTop)
 
         itemFrame:EnableMouse(true)
         itemFrame:HookScript('OnMouseUp', OnContextMenuItemMouseUp)
@@ -130,18 +141,18 @@ function Xist_UI_Widget_ContextMenu:InitializeMenuOptions(options)
         end
 
         -- AFTER checking the width then pin the right side
-        itemFrame:SetPoint('BOTTOMRIGHT', self, 'TOPRIGHT', -spacing.right, -offset-height)
+        itemFrame:SetPoint('BOTTOMRIGHT', self, 'TOPRIGHT', -offsetRight, -offsetTop -height)
 
         items[#items+1] = itemFrame
-        offset = offset + height + spacing.vbetween
+        offsetTop = offsetTop + height + spacing.vbetween
 
-        DEBUG_CAT('InitializeMenuItems ['..i..']', {width=width, height=height, offset=offset})
+        DEBUG_CAT('InitializeMenuItems ['..i..']', {width=width, height=height, offset= offsetTop })
     end
 
     self.items = items
 
-    width = maxWidth + spacing.left + spacing.right
-    height = offset - spacing.vbetween + spacing.bottom
+    width = maxWidth + offsetLeft + offsetRight
+    height = offsetTop - spacing.vbetween + offsetBottom
 
     self:SetSize(width, height)
 
@@ -152,6 +163,7 @@ end
 local function InitializeContextMenuWidget(widget, options)
     widget:InitializeMenuOptions(options)
     widget:EnableMouse(true) -- dont let mouse pass thru this frame
+    widget:HookScript('OnMouseUp', OnContextMenuMouseUp)
     widget:GetParent():HookScript('OnMouseUp', function(_, button) widget:OnContextMenuMouseUp(button) end)
 end
 

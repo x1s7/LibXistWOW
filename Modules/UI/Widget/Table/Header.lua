@@ -27,7 +27,7 @@ local classes = {
 }
 
 
-local function OnHeaderCellMouseUp(headerCell, button)
+local function OnHeaderCellClick(headerCell, button)
     local tableHeader = headerCell:GetParent()
     tableHeader:HandleClickOnIndex(headerCell.columnIndex, button)
 end
@@ -61,7 +61,7 @@ function Xist_UI_Widget_Table_Header:InitializeTableHeaderCells()
         DEBUG('InitializeTableHeaderCells['.. i ..'] option=', option)
         local cell = Xist_UI:Button(self, cellClass)
         cell.columnIndex = i
-        cell:HookScript('OnMouseUp', OnHeaderCellMouseUp)
+        cell:RegisterEvent('OnClick', OnHeaderCellClick)
         if i == 1 then
             cell:SetPoint('TOPLEFT', self, 'TOPLEFT', spacing.left, -spacing.top)
         else
