@@ -11,7 +11,7 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 --- @class Xist_AddonButton
 Xist_AddonButton = M
 
-protected.DebugEnabled = true
+--protected.DebugEnabled = true
 
 local DEBUG_CAT = protected.DEBUG_CAT
 local WARNING = protected.WARNING

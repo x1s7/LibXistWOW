@@ -11,7 +11,7 @@ local M, protected = Xist_Module.Install(ModuleName, ModuleVersion)
 --- @class Xist_UI
 Xist_UI = M
 
-protected.DebugEnabled = true
+--protected.DebugEnabled = true
 
 local VERBOSE_INHERITANCE_DEBUG = protected.DebugEnabled and false
 local VERBOSE_CLASS_DEBUG = protected.DebugEnabled and false
@@ -395,9 +395,9 @@ end
 
 
 function Xist_UI:Button(parent, className, config)
-    VERBOSE_INHERITANCE_DEBUG = protected.DebugEnabled
+    --VERBOSE_INHERITANCE_DEBUG = protected.DebugEnabled
     local widget = self:CreateWidget('button', 'Frame', parent, className, config)
-    VERBOSE_INHERITANCE_DEBUG = false
+    --VERBOSE_INHERITANCE_DEBUG = false
     return widget
 end
 
@@ -456,9 +456,9 @@ end
 
 
 function Xist_UI:Window(parent, title, className, config)
-    VERBOSE_CLASS_DEBUG = protected.DebugEnabled -- on if debugging is on
+    --VERBOSE_CLASS_DEBUG = protected.DebugEnabled -- on if debugging is on
     local widget = self:CreateWidget('window', 'Frame', parent, className, config, {title})
-    VERBOSE_CLASS_DEBUG = false
+    --VERBOSE_CLASS_DEBUG = false
     return widget
 end
 
