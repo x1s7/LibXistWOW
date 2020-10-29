@@ -43,13 +43,18 @@ function Xist_UI_Widget_Table_Data:InitializeTableDataWidget()
 end
 
 
-function Xist_UI_Widget_Table_Data:AddData(data)
-    self.tableData[1+#self.tableData] = Xist_Util.Copy(data)
+--- @param rowData table
+function Xist_UI_Widget_Table_Data:AddData(rowData)
+    self.tableData[1+#self.tableData] = Xist_Util.Copy(rowData)
 end
 
 
-function Xist_UI_Widget_Table_Data:SetData(dataList)
-    self.tableData = Xist_Util.Copy(dataList) or {}
+--- @param tableDataReference table
+function Xist_UI_Widget_Table_Data:SetDataReference(tableDataReference)
+    if not tableDataReference then
+        error('Table data reference must not be nil')
+    end
+    self.tableData = tableDataReference
 end
 
 
@@ -79,44 +84,62 @@ function Xist_UI_Widget_Table_Data:GetOrCreateDataRow(index)
 end
 
 
-local function makeDefaultSort(sortKey)
-    return function(a, b)
-        return a[sortKey] < b[sortKey]
+local function makeDefaultSort(data, sortKey)
+    return function(key1, key2)
+        return data[key1][sortKey] < data[key2][sortKey]
     end
 end
 
 
 function Xist_UI_Widget_Table_Data:SortData()
     local index, asc = self.tableWidget:GetCurrentSortSetting()
+    local result = {}
     if index ~= nil then
         -- the user has selected to sort based on a column
         local option = self.options[index]
-        local sort = option.sort or makeDefaultSort(option.sortKey or index) -- ascending sort function
+        -- get a function that sorts the data ascending
+        local sort
+        if option.sort then
+            local widget = self
+            sort = function(a, b) return option.sort(widget.tableData[a], widget.tableData[b]) end
+        else
+            sort = makeDefaultSort(self.tableData, option.sortKey or option.dataKey or index) -- ascending sort function
+        end
+        -- convert the sort function to descending if needed
         local comp = sort
         if not asc then -- need to sort descending, swap the parameter order to achieve this
             comp = function(a, b) return sort(b, a) end
         end
-        table.sort(self.tableData, comp)
+        -- execute the sort, store the new key order
+        for key, _ in Xist_Util.PairsByKeys(self.tableData, comp) do
+            result[1+#result] = key
+        end
+    else
+        -- store the current random order of the keys
+        for key, _ in pairs(self.tableData) do
+            result[1+#result] = key
+        end
     end
+    return result
 end
 
 
 function Xist_UI_Widget_Table_Data:Update()
     -- 1) Sort data
-    self:SortData()
+    local sortedKeys = self:SortData()
 
     -- 2) Assign data to rows
     local height = self.spacing.top
-    for i=1, #self.tableData do
+    for i=1, #sortedKeys do
         local row = self:GetOrCreateDataRow(i)
-        row:SetData(self.tableData[i])
+        row:SetData(self.tableData[sortedKeys[i]])
         row:Update()
         row:Show() -- in case it was previously hidden, show it
         height = height + row:GetHeight() + self.spacing.vbetween
     end
 
     -- 3) Hide empty rows (data may have been deleted)
-    for i=#self.tableData + 1, #self.tableDataRows do
+    for i=#sortedKeys+1, #self.tableDataRows do
         local row = self.tableDataRows[i]
         row:Hide()
     end
@@ -125,13 +148,15 @@ function Xist_UI_Widget_Table_Data:Update()
     height = height - self.spacing.vbetween + self.spacing.bottom
     self:SetHeight(height)
 
-    DEBUG_CAT('Update', {nRows=#self.tableData, height=height})
+    DEBUG_CAT('Update', {nRows=#sortedKeys, height=height})
 end
 
 
 function Xist_UI_Widget_Table_Data:UpdateWidth()
-    for i=1, #self.tableData do
-        self.tableDataRows[i]:UpdateWidth()
+    for i=1, #self.tableDataRows do
+        if self.tableDataRows[i]:IsShown() then
+            self.tableDataRows[i]:UpdateWidth()
+        end
     end
 end
 

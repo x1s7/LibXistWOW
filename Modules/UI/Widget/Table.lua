@@ -61,14 +61,16 @@ function Xist_UI_Widget_Table:GetCurrentSortSetting()
 end
 
 
-function Xist_UI_Widget_Table:AddData(data)
-    self.dataWidget:AddData(data)
+--- @param rowData table
+function Xist_UI_Widget_Table:AddData(rowData)
+    self.dataWidget:AddData(rowData)
     self:Update()
 end
 
 
-function Xist_UI_Widget_Table:SetData(dataList)
-    self.dataWidget:SetData(dataList)
+--- @param tableDataReference table
+function Xist_UI_Widget_Table:SetDataReference(tableDataReference)
+    self.dataWidget:SetDataReference(tableDataReference)
     self:Update()
 end
 
@@ -93,7 +95,7 @@ function Xist_UI_Widget_Table:Update()
         self.dataWidget:UpdateWidth()
     end
 
-    DEBUG_CAT('Table Update', {headerHeight=self.headerWidget:GetHeight(), dataHeight=self.dataWidget:GetHeight(), scrollHeight=self.scrollFrame:GetHeight()})
+    DEBUG_CAT('Update', {headerHeight=self.headerWidget:GetHeight(), dataHeight=self.dataWidget:GetHeight(), scrollHeight=self.scrollFrame:GetHeight()})
 
     self.scrollFrame:Redraw()
 end
