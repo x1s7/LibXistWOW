@@ -125,7 +125,7 @@ function Xist_UI_Widget_Table_Header:Update()
         local option = self.options[i]
         local cell = self.tableHeaderCells[i]
         if i == self.sortIndex then
-            local sortPrefix = self.sortAscending and '˄' or '˅'
+            local sortPrefix = self.sortAscending and '^' or 'v'
             cell:SetText(sortPrefix ..' '.. option.title)
         else
             -- make sure the text does not contain any sorting
