@@ -86,27 +86,37 @@ function Xist_UI_Widget_Label:GetTextHeight()
 end
 
 
+--- Set the text of this label.
+--- If not constraining to fixed widths, we will automatically recalculate the width
+--- of the label.  Doing so involves some WOW quirks which we try to deal with here.
+--- For more info, see the link below.
+--- @see https://wowwiki.fandom.com/wiki/UIOBJECT_FontString
+--- @param text string
 function Xist_UI_Widget_Label:SetText(text)
+    text = tostring(text) -- in case they gave us an object, number, etc
+
     self.fontString:SetText(text)
 
     -- adjust label size to include padding
     local padding = self.widgetPadding
-    local textWidth = self:GetTextWidth()
-    local textHeight = self:GetTextHeight()
 
+    local width
     if not self.widgetFixedWidth then
-        self:SetWidth(textWidth + padding.left + padding.right)
+        self:SetWidth(0) -- force WOW to forget any previous width and recalculate
+        local textWidth = self:GetTextWidth()
+        width = textWidth + padding.left + padding.right
+        self:SetWidth(width)
     end
 
+    local height
     if not self.widgetFixedHeight then
-        self:SetHeight(textHeight + padding.top + padding.bottom)
+        self:SetHeight(0) -- force WOW to forget any previous height and recalculate
+        local textHeight = self:GetTextHeight()
+        height = textHeight + padding.top + padding.bottom
+        self:SetHeight(height)
     end
 
-    if protected.DebugEnabled then
-        local r,g,b,a = self.fontString:GetFontObject():GetTextColor()
-        local fontDump = {r=r, g=g, b=b, a=a, fontClass=self.widgetFontClass}
-        DEBUG_CAT('Label.SetText', {text=text, width=textWidth, height=textHeight}, fontDump)
-    end
+    DEBUG_CAT('SetText', {text=text, width=width, height=height})
 end
 
 
