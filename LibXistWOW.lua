@@ -79,6 +79,7 @@ end
 local contextMenuOptions = {
     {title = addon:GetName(), color = {1, 1, 0}},
     {text = "Open Debug Log", callback = Xist_LogMessageContainer.Show},
+    {text = "Mark Debug Log", callback = function() addon:MESSAGE('--- LOG MARKER ---'); return true end},
     {text = "Table Test", callback = tableTest},
     {text = "Disable Test", callback = disableTest},
     {text = "Enable Test", callback = enableTest},
