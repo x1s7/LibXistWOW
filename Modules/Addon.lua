@@ -87,11 +87,6 @@ function Xist_Addon:New(name, version)
     obj.DEBUG_CAT = protected.NOOP
     obj.DEBUG_DUMP = protected.NOOP
 
-    -- if module debugging is enabled then enable debugging in addon instances by default
-    if protected.DebugEnabled then
-        obj:EnableDebug()
-    end
-
     return obj
 end
 
@@ -314,7 +309,7 @@ function Xist_Addon:WriteSaveData()
     if self.SaveData then
         self:DEBUG_CAT('WriteSaveData', self.CacheData)
         -- before we write the save data, allow callbacks to make their updates to the cache
-        self.oAddonEventHandler:TriggerEvent("OnSaveDataWrite")
+        self.oAddonEventHandler:TriggerEvent("OnSaveDataWrite", self.CacheData)
         -- now write the save data
         self.SaveData:Write(self.CacheData)
     else
