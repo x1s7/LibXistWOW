@@ -184,7 +184,7 @@ UnitTest:AddTest('Slice negative', function(self)
 end)
 
 
-UnitTest:AddTest('MergeInfo', function(self)
+UnitTest:AddTest('MergeInto', function(self)
     local a = {x=1, y=2}
     local b = {x=2, z=3}
     local expected = {x=2, y=2, z=3}
@@ -196,7 +196,7 @@ UnitTest:AddTest('MergeInfo', function(self)
 end)
 
 
-UnitTest:AddTest('MergeInfo overwrites external data', function(self)
+UnitTest:AddTest('MergeInto overwrites external data', function(self)
     local a = {x=1, y=2}
     local b = {x=2, z=3}
     local _ = Xist_Util.MergeInto(a, b)
@@ -223,6 +223,55 @@ UnitTest:AddTest('Merge does not overwrite external data', function(self)
     local _ = Xist_Util.Merge(a, b)
     -- after MergeInto, values of `a' should have been updated
     assert(1 == a.x, self:ExpectedEqual(1, a.x))
+end)
+
+
+UnitTest:AddTest('PairsByKeys default sort', function(self)
+    local data = {
+        c = 1,
+        b = 2,
+        a = 3,
+    }
+    local keys = {}
+    local values = {}
+    for k, v in Xist_Util.PairsByKeys(data) do
+        table.insert(keys, k)
+        table.insert(values, v)
+    end
+    assert(3 == #keys)
+    assert(3 == #values)
+    assert('a' == keys[1]) -- 'a' < 'b' regardless of value
+    assert(3 == values[1])
+    assert('b' == keys[2]) -- 'b' < 'c' regardless of value
+    assert(2 == values[2])
+    assert('c' == keys[3])
+    assert(1 == values[3])
+end)
+
+
+UnitTest:AddTest('PairsByKeys default sort', function(self)
+    local data = {
+        c = 1,
+        b = 2,
+        a = 3,
+    }
+    local comp = function(a, b)
+        return data[a] < data[b]
+    end
+    local keys = {}
+    local values = {}
+    for k, v in Xist_Util.PairsByKeys(data, comp) do
+        table.insert(keys, k)
+        table.insert(values, v)
+    end
+    assert(3 == #keys)
+    assert(3 == #values)
+    assert('c' == keys[1]) -- 'c' key has lowest value
+    assert(1 == values[1])
+    assert('b' == keys[2]) -- 'b' key has middle value
+    assert(2 == values[2])
+    assert('a' == keys[3]) -- 'a' key has highest value
+    assert(3 == values[3])
 end)
 
 
