@@ -147,6 +147,20 @@ function Xist_Util.Merge(...)
 end
 
 
+--- Return a list of the table's keys.
+--- @param tbl table
+--- @return table[]
+function Xist_Util.Keys(tbl)
+    local keys = {}
+    local n = 0
+    for key, _ in pairs(tbl) do
+        n = n + 1
+        keys[n] = key
+    end
+    return keys
+end
+
+
 --- Sort assoc table keys for iteration.
 --- The default sort function is ascending alphabetical.
 --- @overload fun(tbl:table):fun():string, any
