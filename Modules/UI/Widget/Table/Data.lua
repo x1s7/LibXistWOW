@@ -58,6 +58,15 @@ function Xist_UI_Widget_Table_Data:SetDataReference(tableDataReference)
 end
 
 
+--- Set the data filter callback.
+--- The function must take 2 arguments, the data table key and the data itself.
+--- If the data SHOULD be visible in the table, return true, else return false.
+--- @param fn fun(key:any, data:table):boolean
+function Xist_UI_Widget_Table_Data:SetDataFilter(fn)
+    self.dataFilterCallback = fn
+end
+
+
 function Xist_UI_Widget_Table_Data:GetDataRow(index)
     return self.tableDataRows[index] -- possibly nil
 end
@@ -91,32 +100,40 @@ local function makeDefaultSort(data, sortKey)
 end
 
 
-function Xist_UI_Widget_Table_Data:SortData()
-    local index, asc = self.tableWidget:GetCurrentSortSetting()
-    local result = {}
-    if index ~= nil then
-        -- the user has selected to sort based on a column
-        local option = self.options[index]
-        -- get a function that sorts the data ascending
-        local sort
-        if option.sort then
-            local widget = self
-            sort = function(a, b) return option.sort(widget.tableData[a], widget.tableData[b]) end
-        else
-            sort = makeDefaultSort(self.tableData, option.sortKey or option.dataKey or index) -- ascending sort function
-        end
-        -- convert the sort function to descending if needed
-        local comp = sort
-        if not asc then -- need to sort descending, swap the parameter order to achieve this
-            comp = function(a, b) return sort(b, a) end
-        end
-        -- execute the sort, store the new key order
-        for key, _ in Xist_Util.PairsByKeys(self.tableData, comp) do
-            result[1+#result] = key
-        end
+function Xist_UI_Widget_Table_Data:GenerateSortFunction(option, index, asc)
+
+    -- get a function that sorts the data ascending
+    local sort
+    if option.sort then
+        local widget = self
+        sort = function(a, b) return option.sort(widget.tableData[a], widget.tableData[b]) end
     else
-        -- store the current random order of the keys
-        for key, _ in pairs(self.tableData) do
+        sort = makeDefaultSort(self.tableData, option.sortKey or option.dataKey or index) -- ascending sort function
+    end
+
+    -- convert the sort function to descending if needed
+    local comp = sort
+    if not asc then -- need to sort descending, swap the parameter order to achieve this
+        comp = function(a, b) return sort(b, a) end
+    end
+
+    return comp
+end
+
+
+function Xist_UI_Widget_Table_Data:FilterDataKeys(keys)
+
+    -- if there is no filter, just return keys
+    if not self.dataFilterCallback then
+        return keys
+    end
+
+    -- filter the keys to some subset
+    local result = {}
+    local key
+    for i=1, #keys do
+        key = keys[1]
+        if self.dataFilterCallback(key, self.tableData[key]) then
             result[1+#result] = key
         end
     end
@@ -124,9 +141,27 @@ function Xist_UI_Widget_Table_Data:SortData()
 end
 
 
+function Xist_UI_Widget_Table_Data:SortDataKeys()
+
+    local result = Xist_Util:Keys(self.tableData)
+
+    -- filter data keys
+    result = self:FilterDataKeys(result)
+
+    local index, asc = self.tableWidget:GetCurrentSortSetting()
+    if index ~= nil then
+        -- generate the function that will sort the data
+        local comp = self:GenerateSortFunction(self.options[index], index, asc)
+        table.sort(result, comp)
+    end
+
+    return result
+end
+
+
 function Xist_UI_Widget_Table_Data:Update()
     -- 1) Sort data
-    local sortedKeys = self:SortData()
+    local sortedKeys = self:SortDataKeys()
 
     -- 2) Assign data to rows
     local height = self.spacing.top
