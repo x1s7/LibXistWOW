@@ -26,6 +26,7 @@ protected.GLOBAL_EVENTS = {
     ADDON_LOADED = {}, -- one of the many addons has loaded, saved data is now available
     FRIENDLIST_UPDATE = {}, -- new/updated information about the friends list is available
     PLAYER_ENTERING_WORLD = {}, -- player is entering the world
+    PLAYER_LOGIN = {}, -- player is logging in
     PLAYER_LOGOUT = {}, -- player is logging out, time to save persistent data
     PLAYER_REGEN_ENABLED = {}, -- combat has ended
     PLAYER_REGEN_DISABLED = {}, -- combat has begun
