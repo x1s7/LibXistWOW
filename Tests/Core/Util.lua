@@ -226,6 +226,24 @@ UnitTest:AddTest('Merge does not overwrite external data', function(self)
 end)
 
 
+UnitTest:AddTest('Keys Sequential', function(self)
+    local tbl = {1, 2}
+    local keys = Xist_Util.Keys(tbl)
+    assert(2 == #keys)
+    assert(1 == keys[1])
+    assert(2 == keys[2])
+end)
+
+
+UnitTest:AddTest('Keys Assoc', function(self)
+    local tbl = {a=1, b=2}
+    local keys = Xist_Util.Keys(tbl)
+    assert(2 == #keys)
+    assert('a' == keys[1])
+    assert('b' == keys[2])
+end)
+
+
 UnitTest:AddTest('PairsByKeys default sort', function(self)
     local data = {
         c = 1,
