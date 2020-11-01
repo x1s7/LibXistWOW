@@ -104,12 +104,15 @@ function Xist_UI_Widget_Table_DataRow:Update()
 
     for i=1, #self.options do
         local option = self.options[i]
+        local cell = self.tableDataCells[i]
 
         local dataKey = option.dataKey or i
         local dataValue = self.data[dataKey]
 
-        local cell = self.tableDataCells[i]
-        cell:SetText(dataValue)
+        local formattedDataValue = dataValue
+        if option.format then formattedDataValue = option.format(dataValue) end
+
+        cell:SetText(formattedDataValue)
 
         local width = cell:GetWidth()
         if width > option.runtimeColumnWidth then
