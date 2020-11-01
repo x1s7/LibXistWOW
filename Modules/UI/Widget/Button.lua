@@ -40,6 +40,14 @@ local classes = {
             h = 6,
         },
     },
+    tableDataCell = {
+        backdropClass = 'tableDataCell',
+        fontClass = 'tableDataCell',
+    },
+    tableHeaderCell = {
+        backdropClass = 'tableHeaderCell',
+        fontClass = 'tableHeaderCell',
+    },
 }
 
 

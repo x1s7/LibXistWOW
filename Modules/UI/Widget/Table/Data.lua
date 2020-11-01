@@ -23,7 +23,7 @@ local settings = {
 
 local classes = {
     default = {
-        backdropClass = 'green',
+        backdropClass = 'transparent',
         spacing = {
             h = 0,
             v = 2,
@@ -132,7 +132,7 @@ function Xist_UI_Widget_Table_Data:FilterDataKeys(keys)
     local result = {}
     local key
     for i=1, #keys do
-        key = keys[1]
+        key = keys[i]
         if self.dataFilterCallback(key, self.tableData[key]) then
             result[1+#result] = key
         end
@@ -143,7 +143,7 @@ end
 
 function Xist_UI_Widget_Table_Data:SortDataKeys()
 
-    local result = Xist_Util:Keys(self.tableData)
+    local result = Xist_Util.Keys(self.tableData)
 
     -- filter data keys
     result = self:FilterDataKeys(result)
