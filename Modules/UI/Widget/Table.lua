@@ -75,6 +75,15 @@ function Xist_UI_Widget_Table:SetDataReference(tableDataReference)
 end
 
 
+--- Set the data filter callback.
+--- The function must take 2 arguments, the data table key and the data itself.
+--- If the data SHOULD be visible in the table, return true, else return false.
+--- @param fn fun(key:any, data:table):boolean
+function Xist_UI_Widget_Table:SetDataFilter(fn)
+    self.dataWidget:SetDataFilter(fn)
+end
+
+
 function Xist_UI_Widget_Table:NoteColumnWidthNeedsUpdate(columnIndex)
     self.widgetNoteColumnWidthNeedsUpdate = columnIndex -- discard any previous column, we just want to know true/false really
 end
