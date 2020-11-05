@@ -101,11 +101,24 @@ function Xist_Friend_BattleNet:NewByPresenceID(presenceID)
 end
 
 
+--- Get the full battle tag of the friend, like "Xist#1234"
+--- @return string|nil
 function Xist_Friend_BattleNet:GetBattleTag()
     if self.BNetInfo then
         return self.BNetInfo.battleTag
     end
     return nil
+end
+
+
+--- Get just the name part of the battle tag, like "Xist"
+--- @return string|nil
+function Xist_Friend_BattleNet:GetBattleTagName()
+    local tag = self:GetBattleTag()
+    if tag then
+        tag = string.match(tag, "(.*)#") -- everything before the '#' character
+    end
+    return tag
 end
 
 
